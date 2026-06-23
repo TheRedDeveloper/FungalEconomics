@@ -43,7 +43,20 @@ async fn main() {
     pause_sound,
   };
 
-  let mut mode = GameMode::StartSync { hold_accumulation: 0.0 };
+  let mut mode = GameMode::Playing {
+    state: GameState {
+      is_paused: false,
+      current_phase: 1,
+      phase_timer: PHASE_LENGTH,
+      resource_pool: Resources::new(START_CARBON, START_NITROGEN, START_PHOSPHORUS, START_WATER),
+      is_resource_missing: IsResourceMissing::default(),
+      is_overstacked_menu_opened: false,
+      active_nodes: vec![BaseTileType::Ash], // Free starting token
+      spore_points: 0,
+    },
+  };
+
+  ply.set_debug_mode(true);
 
   loop {
     clear_background(BLACK);
