@@ -33,7 +33,6 @@ Each player is assigned a distinct, highly visible color (e.g., Neon Blue, Orang
 ### Global Resource Limits & Starting State
 
 - Players chose a corner to put their first token in for free. All 6 corners start as Ash to give players equal chances and so the app already knows the first tile.
-- **Resource Cap:** For user interface cleanlines, a player's inventory can hold a maximum of **9999** units of any individual resource.
 - **Starting Capital:** Each player starts Phase 1 logged into their app with:
 - 200 Carbon (C)
 - 50 Nitrogen (N)

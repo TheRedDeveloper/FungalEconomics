@@ -1,11 +1,18 @@
+mod models;
+mod engine;
+mod ui;
+
 use ply_engine::prelude::*;
+use models::*;
+use engine::*;
+use ui::*;
 
 fn window_conf() -> macroquad::conf::Conf {
   macroquad::conf::Conf {
     miniquad_conf: miniquad::conf::Conf {
-      window_title: "Hello Ply!".to_owned(),
-      window_width: 800,
-      window_height: 600,
+      window_title: "Fungal Economics: Spore War".to_owned(),
+      window_width: 400,
+      window_height: 800,
       high_dpi: true,
       sample_count: 4,
       platform: miniquad::conf::Platform {
@@ -23,24 +30,38 @@ fn window_conf() -> macroquad::conf::Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
   static DEFAULT_FONT: FontAsset = FontAsset::Bytes { file_name: "lexend.ttf", data: include_bytes!("../assets/fonts/lexend.ttf") };
+  static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
+  
   let mut ply = Ply::<()>::new(&DEFAULT_FONT).await;
+
+  let next_sound = load_sound_from_bytes(include_bytes!("../assets/sounds/next.wav")).await.unwrap();
+  let pause_sound = load_sound_from_bytes(include_bytes!("../assets/sounds/pause.wav")).await.unwrap();
+
+  let assets = Assets {
+    test_image: &TEST_IMAGE,
+    next_sound,
+    pause_sound,
+  };
+
+  let mut mode = GameMode::StartSync { hold_accumulation: 0.0 };
 
   loop {
     clear_background(BLACK);
 
+    let dt = get_frame_time();
+
+    if let Some(effect) = update_game(&mut mode, dt) {
+        match effect {
+            SoundEffect::NextPhase => play_sound_once(&assets.next_sound),
+            SoundEffect::Pause => play_sound_once(&assets.pause_sound),
+        }
+    }
+
     let mut ui = ply.begin();
-
-    ui.element().width(grow!()).height(grow!())
-      .layout(|l| l.align(CenterX, CenterY))
-      .children(|ui| {
-        ui.text("Hello, Ply!", |t| t
-          .font_size(32)
-          .color(0xFFFFFF)
-        );
-      });
-
+    render_ui(&mut ui, &mut mode, &assets);
     ui.show(|_| {}).await;
 
     next_frame().await;
   }
 }
+
