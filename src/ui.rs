@@ -9,13 +9,7 @@ pub const COLOR_RED: u32 = 0xF44336;
 pub const COLOR_BG: u32 = 0x121212;
 pub const COLOR_CARD_BG: u32 = 0x1E1E1E;
 
-pub struct Assets {
-  pub test_image: &'static GraphicAsset,
-  pub next_sound: Sound,
-  pub pause_sound: Sound,
-}
-
-pub fn render_ui(ui: &mut Ui, mode: &mut GameMode, assets: &Assets) {
+pub fn render_ui(ui: &mut Ui, mode: &mut GameMode) {
   ui.element().width(grow!()).height(grow!())
     .background_color(COLOR_BG)
     .children(|ui| {
@@ -24,9 +18,9 @@ pub fn render_ui(ui: &mut Ui, mode: &mut GameMode, assets: &Assets) {
           render_sync_screen(ui, "HOLD TO START SYNC", *hold_accumulation);
         }
         GameMode::Playing { state } => {
-          render_dashboard(ui, state, assets);
+          render_dashboard(ui, state);
           if state.is_overstacked_menu_opened {
-            render_outstack_overlay(ui, state, assets);
+            render_outstack_overlay(ui, state);
           }
         }
         GameMode::TransitionSync { state: _, hold_accumulator } => {
@@ -57,7 +51,7 @@ fn render_sync_screen(ui: &mut Ui, message: &str, progress: f32) {
     });
 }
 
-fn render_dashboard(ui: &mut Ui, state: &mut GameState, assets: &Assets) {
+fn render_dashboard(ui: &mut Ui, state: &mut GameState) {
   ui.element().width(grow!()).height(grow!())
     .layout(|l| l.direction(TopToBottom))
     .children(|ui| {
@@ -67,7 +61,7 @@ fn render_dashboard(ui: &mut Ui, state: &mut GameState, assets: &Assets) {
         .overflow(|o| o.scroll_y())
         .layout(|l| l.align(CenterX, CenterY).padding(20))
         .children(|ui| {
-          render_grid(ui, state, assets);
+          render_grid(ui, state);
         });
 
       render_bottom_bar(ui, state);
@@ -114,13 +108,14 @@ fn resource_label(ui: &mut Ui, label: &str, value: f32, is_missing: bool, color:
     });
 }
 
-fn render_grid(ui: &mut Ui, state: &mut GameState, assets: &Assets) {
+fn render_grid(ui: &mut Ui, state: &mut GameState) {
+  // TODO: Better scaling
   let available_bases = match state.current_phase {
     1 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
     2 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
     3 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
     4 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::Puddle, BaseTileType::DryDirt],
-    5 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::Puddle, BaseTileType::DryDirt],
+    5 => vec![BaseTileType::Ash, BaseTileType::Puddle],
     _ => vec![],
   };
 
@@ -134,14 +129,15 @@ fn render_grid(ui: &mut Ui, state: &mut GameState, assets: &Assets) {
           .layout(|l| l.gap(15))
           .children(|ui| {
             for base in row {
-              render_tile_button(ui, state, *base, assets);
+              render_tile_button(ui, state, *base);
             }
           });
       }
     });
 }
 
-fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, assets: &Assets) {
+fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType) {
+  // TODO: Make this look good
   let tile = base.get_current_tile_type(state.current_phase);
   let cost_c = tile.expansion_carbon_cost();
   let cost_w = tile.water_cost();
@@ -162,6 +158,7 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, as
         state.active_nodes.push(base);
       }
 
+      // HACK: This is bad
       if !can_afford {
         ui.element().width(grow!()).height(grow!())
           .floating(|f| f.attach_parent().z_index(10))
@@ -170,7 +167,7 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, as
 
       // Image placeholder
       ui.element().width(fixed!(64.0)).height(fixed!(64.0))
-        .image(assets.test_image).empty();
+        .image(tile.icon()).empty();
 
       ui.text(tile.label(), |t| t.font_size(14).color(0xFFFFFF));
 
@@ -268,12 +265,13 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState) {
     });
 }
 
-fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, assets: &Assets) {
+fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState) {
   ui.element().width(grow!()).height(grow!())
     .floating(|f| f.attach_root().z_index(100))
     .background_color((0u8, 0u8, 0u8, 200u8))
     .layout(|l| l.align(CenterX, CenterY).padding(20))
     .children(|ui| {
+      // TODO: This should also be a grid
       ui.element().width(fit!(max: 400.0)).height(fit!(max: 600.0))
         .background_color(COLOR_CARD_BG)
         .corner_radius(12.0)
@@ -293,11 +291,12 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, assets: &Assets) 
                   .corner_radius(4.0)
                   .layout(|l| l.gap(10).padding(10).align(CenterX, CenterY))
                   .children(|ui| {
-                    ui.element().width(fixed!(40.0)).height(fixed!(40.0)).image(assets.test_image).empty();
-                    ui.text(tile.label(), |t| t.color(0xFFFFFF));
+                    ui.element().width(fixed!(40.0)).height(fixed!(40.0)).image(tile.icon()).empty();
+                    ui.text(tile.label(), |t| t.color(0xFFFFFF).font_size(16));
                     ui.element().width(grow!()).empty();
-                    ui.text("REMOVE", |t| t.color(COLOR_RED));
+                    ui.text("REMOVE", |t| t.color(COLOR_RED).font_size(16));
                   });
+                // TODO: It should be click to select, not click to remove. Anothter confimation button should be added. 
                 if ui.is_just_pressed(id) {
                   to_remove = Some(idx);
                 }
@@ -312,7 +311,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, assets: &Assets) 
             .background_color(0x333333)
             .corner_radius(4.0)
             .children(|ui| {
-              ui.text("CANCEL", |t| t.color(0xFFFFFF).alignment(CenterX));
+              ui.text("CANCEL", |t| t.color(0xFFFFFF).font_size(16));
             });
           if ui.is_just_pressed(cancel_id) {
             state.is_overstacked_menu_opened = false;
@@ -331,11 +330,11 @@ fn render_game_over(ui: &mut Ui, state: &GameState) {
       ui.element().width(fit!()).height(fit!())
         .layout(|l| l.direction(TopToBottom).gap(10).align(CenterX, CenterY))
         .children(|ui| {
-          ui.text("FINAL RESOURCES:", |t| t.color(0xAAAAAA));
-          ui.text(&format!("{} Carbon", state.resource_pool.carbon as i32), |t| t.color(COLOR_CARBON));
-          ui.text(&format!("{} Nitrogen", state.resource_pool.nitrogen as i32), |t| t.color(COLOR_NITROGEN));
-          ui.text(&format!("{} Phosphorus", state.resource_pool.phosphorus as i32), |t| t.color(COLOR_PHOSPHORUS));
-          ui.text(&format!("{} Water", state.resource_pool.water as i32), |t| t.color(COLOR_WATER));
+          ui.text("FINAL RESOURCES:", |t| t.color(0xAAAAAA).font_size(16));
+          ui.text(&format!("{} Carbon", state.resource_pool.carbon as i32), |t| t.color(COLOR_CARBON).font_size(14));
+          ui.text(&format!("{} Nitrogen", state.resource_pool.nitrogen as i32), |t| t.color(COLOR_NITROGEN).font_size(14));
+          ui.text(&format!("{} Phosphorus", state.resource_pool.phosphorus as i32), |t| t.color(COLOR_PHOSPHORUS).font_size(14));
+          ui.text(&format!("{} Water", state.resource_pool.water as i32), |t| t.color(COLOR_WATER).font_size(14));
         });
     });
 }

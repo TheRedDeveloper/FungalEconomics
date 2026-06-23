@@ -30,18 +30,11 @@ fn window_conf() -> macroquad::conf::Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
   static DEFAULT_FONT: FontAsset = FontAsset::Bytes { file_name: "lexend.ttf", data: include_bytes!("../assets/fonts/lexend.ttf") };
-  static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
   
   let mut ply = Ply::<()>::new(&DEFAULT_FONT).await;
 
   let next_sound = load_sound_from_bytes(include_bytes!("../assets/sounds/next.wav")).await.unwrap();
   let pause_sound = load_sound_from_bytes(include_bytes!("../assets/sounds/pause.wav")).await.unwrap();
-
-  let assets = Assets {
-    test_image: &TEST_IMAGE,
-    next_sound,
-    pause_sound,
-  };
 
   let mut mode = GameMode::Playing {
     state: GameState {
@@ -65,13 +58,13 @@ async fn main() {
 
     if let Some(effect) = update_game(&mut mode, dt) {
         match effect {
-            SoundEffect::NextPhase => play_sound_once(&assets.next_sound),
-            SoundEffect::Pause => play_sound_once(&assets.pause_sound),
+            SoundEffect::NextPhase => play_sound_once(&next_sound),
+            SoundEffect::Pause => play_sound_once(&pause_sound),
         }
     }
 
     let mut ui = ply.begin();
-    render_ui(&mut ui, &mut mode, &assets);
+    render_ui(&mut ui, &mut mode);
     ui.show(|_| {}).await;
 
     next_frame().await;
