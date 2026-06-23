@@ -22,7 +22,7 @@ fn window_conf() -> macroquad::conf::Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-  static DEFAULT_FONT: FontAsset = FontAsset::Path("assets/fonts/lexend.ttf");
+  static DEFAULT_FONT: FontAsset = FontAsset::Bytes { file_name: "lexend.ttf", data: include_bytes!("../assets/fonts/lexend.ttf") };
   let mut ply = Ply::<()>::new(&DEFAULT_FONT).await;
 
   loop {
