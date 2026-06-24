@@ -32,7 +32,8 @@ Each player is assigned a distinct, highly visible color (e.g., Neon Blue, Orang
 
 ### Global Resource Limits & Starting State
 
-- Players chose a corner to put their first token in for free. All 6 corners start as Ash to give players equal chances and so the app already knows the first tile.
+- Players chose a corner to put their first token in for free. All 6 corners start as Puddle to give players equal chances and so the app already knows the first tile.
+- **Resource Cap:** For user interface cleanlines, a player's inventory can hold a maximum of **9999** units of any individual resource.
 - **Starting Capital:** Each player starts Phase 1 logged into their app with:
 - 200 Carbon (C)
 - 50 Nitrogen (N)
@@ -43,9 +44,9 @@ Each player is assigned a distinct, highly visible color (e.g., Neon Blue, Orang
 
 - Spreading your network to any adjacent hex costs a flat rate of **100 Carbon**.
 - To expand, you must also spend Water to simulate turgor pressure. The drier or denser the target terrain, the higher the water cost:
-- Damp Terrain (Puddles, Log, Ferns, Leaf Litter): 10 Water
-- Standard Soil Terrain (Dirt, Ash, Grass, Flowers, Shrub, Saplings): 25 Water
-- Dry / High-Density Root Terrain (Trunk, Pine, Ancient Oak): 50 Water
+- Damp Terrain: 10 Water
+- Standard Terrain: 25 Water
+- Dense Terrain: 50 Water
 
 ### Outstacking
 
@@ -69,12 +70,12 @@ The game is a fully deterministic simulation. The match moves from a wide-open, 
 
 | Base Tile (Count) | → Phase 2 | → Phase 3 | → Phase 4 | Phase 5 |
 | --- | --- | --- | --- | --- |
-| Ash (15) | II: Regular Dirt | III: Sprouting Grass | IV: Fast Pine | V: Ancient Oak |
-| Charred Fallen Log (12) | II: Pioneer Grass | III: Woody Shrub | IV: Fast Pine | V: Ancient Oak |
-| Charred Tree Trunk (10) | II: Low Shrub | III: Berry Bush | IV: Ancient Oak | - |
-| Charred Grass (10) | II: Flowers | III: Ferns | IV: Ancient Oak | - |
+| Ash (15) | II: Dirt | III: Moss | IV: Pine | V: Oak |
+| Charred Fallen Log (12) | II: Grass | III: Clover | IV: Pine | V: Oak |
+| Charred Tree Trunk (10) | II: Shrub | III: Berry Bush | IV: Oak | - |
+| Charred Grass (10) | II: Flowers | III: Ferns | IV: Oak | - |
 | Puddle (8) | - | - | IV: Green Puddle | V: Leaf Litter |
-| Dry Dirt (6) | II: Saplings | III: Young Pine | IV: Coarse Dirt | V: Leaf Litter |
+| Dry Dirt (6) | II: Saplings | III: Birch | IV: Coarse Dirt | V: Leaf Litter |
 
 ### Phase Economic Sheets
 
@@ -84,50 +85,50 @@ For now: 1 tick = 5s
 
 *Context: Immediate aftermath of a wildfire. No living plants exist. Fungi act as decomposers, burning resources to break down dead wood, or mining ash for minerals.*
 
-- **Ash (15):** Cost: 100 Carbon + 25 Water | Yield: +3 Nitrogen, +3 Phosphorus, +0 Carbon per tick.
-- **Charred Fallen Log (12):** Cost: 100 Carbon + 10 Water | Decomposition Upkeep: Consumes 2 Nitrogen per tick | Yield: +15 Carbon per tick.
-- **Charred Tree Trunk (10):** Cost: 100 Carbon + 50 Water | Decomposition Upkeep: Consumes 4 Phosphorus per tick | Yield: +25 Carbon per tick.
-- **Charred Grass (10):** Cost: 100 Carbon + 25 Water | Yield: +1 Nitrogen, +1 Phosphorus, +3 Carbon per tick.
-- **Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +30 Water per tick.
-- **Dry Dirt (6):** Cost: 100 Carbon + 25 Water | Yield: +1 Nitrogen, +1 Phosphorus, +1 Water per tick.
+- **Puddle (Start Tile):** Cost: 100 Carbon + 10 Water | Yield: +15 Water per tick.
+- **Ash (15):** Cost: 100 Carbon + 25 Water | Yield: +20 Carbon, +3 Nitrogen, +5 Phosphorus per tick.
+- **Charred Fallen Log (12):** Cost: 100 Carbon + 10 Water | Decomposition Upkeep: Consumes 2 Nitrogen, 1 Water per tick | Yield: +20 Carbon per tick.
+- **Charred Tree Trunk (10):** Cost: 100 Carbon + 50 Water | Decomposition Upkeep: Consumes 4 Phosphorus, 2 Water per tick | Yield: +25 Carbon per tick.
+- **Charred Grass (10):** Cost: 100 Carbon + 25 Water | Yield: +12 Carbon, +4 Nitrogen, +10 Phosphorus per tick.
+- **Dry Dirt (6):** Cost: 100 Carbon + 25 Water | Yield: +10 Carbon, +6 Nitrogen, +4 Phosphorus, +4 Water per tick.
 
 ### Phase 2: The Undergrowth Spark
 
 *Context: Pioneer plants sprout. Decomposition yields end; the Mycorrhizal Symbiotic Trade Engine activates. Fungi must now feed plants minerals/water to receive Carbon sugars in return.*
 
-- **Regular Dirt (15):** Cost: 100 Carbon + 25 Water | Yield: +2 Nitrogen, +2 Phosphorus, +2 Water per tick.
-- **Pioneer Grass (12):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 2 Water per tick | Yield: +6 Carbon, +4 Water per tick.
-- **Low Shrub (10):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 2 Nitrogen, 2 Phosphorus per tick | Yield: +12 Carbon, +2 Water per tick.
-- **Flowers (10):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 4 Phosphorus per tick | Yield: +10 Carbon, +7 Water per tick.
-- **Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +30 Water per tick.
-- **Saplings (6):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 3 Nitrogen, 3 Water per tick | Yield: +15 Carbon per tick.
+- **Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +15 Water per tick.
+- **Dirt (15):** Cost: 100 Carbon + 25 Water | Yield: +20 Nitrogen, +20 Phosphorus, +2 Water per tick.
+- **Grass (12):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 3 Nitrogen, 3 Water per tick | Yield: +20 Carbon per tick.
+- **Shrub (10):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 4 Phosphorus, 3 Water per tick | Yield: +30 Carbon per tick.
+- **Flowers (10):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 2 Nitrogen, 2 Phosphorus per tick | Yield: +30 Carbon, +4 Water per tick.
+- **Saplings (6):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 4 Nitrogen, 2 Phosphorus, 4 Water per tick | Yield: +40 Carbon per tick.
 
 ### Phase 3: The Early Canopy Thicket
 
-*Context: Vegetation matures and crowds the surface. Competition drops base plant yields slightly, but larger tree species emerge.*
+*Context: Vegetation matures and crowds the surface. Ground-covering moss, fixers, and ferns act as vital mineral and nutrient-cycling powerhouses before the shade of the canopy closes in.*
 
-- **Sprouting Grass (15):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 3 Water per tick | Yield: +8 Carbon per tick.
-- **Woody Shrub (12):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 3 Nitrogen, 3 Phosphorus per tick | Yield: +16 Carbon per tick.
-- **Berry Bush (10):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 4 Nitrogen, 2 Phosphorus, 2 Water per tick | Yield: +22 Carbon per tick.
-- **Ferns (10):** Cost: 100 Carbon + 15 Water | Symbiotic Trade: Consumes 5 Phosphorus per tick | Yield: +14 Carbon per tick.
-- **Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +30 Water per tick.
-- **Young Pine (6):** Cost: 100 Carbon + 35 Water | Symbiotic Trade: Consumes 6 Nitrogen, 6 Water per tick | Yield: +35 Carbon per tick.
+- **Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +15 Water per tick.
+- **Moss (15):** Cost: 100 Carbon + 25 Water | Yield: +12 Carbon, +15 Nitrogen, +10 Phosphorus, +8 Water per tick.
+- **Clover (12):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 2 Phosphorus, 2 Water per tick | Yield: +20 Carbon, +12 Nitrogen per tick.
+- **Ferns (10):** Cost: 100 Carbon + 15 Water | Symbiotic Trade: Consumes 2 Water per tick | Yield: +15 Carbon, +8 Nitrogen, +12 Phosphorus per tick.
+- **Berry Bush (10):** Cost: 100 Carbon + 25 Water | Symbiotic Trade: Consumes 6 Phosphorus, 2 Nitrogen, 2 Water per tick | Yield: +35 Carbon per tick.
+- **Birch (6):** Cost: 100 Carbon + 35 Water | Symbiotic Trade: Consumes 10 Nitrogen, 8 Phosphorus, 6 Water per tick | Yield: +45 Carbon per tick.
 
 ### Phase 4: The Closed Canopy Crunch
 
 *Context: The canopy closes, shading out undergrowth. The landscape transitions into a heavy timber environment dominated by 27 Pines and 20 early Oaks.*
 
-- **Fast Pine (27):** Cost: 100 Carbon + 35 Water | Symbiotic Trade: Consumes 10 Nitrogen, 10 Water per tick | Yield: +60 Carbon per tick.
-- **Ancient Oak (20):** Cost: 100 Carbon + 50 Water | Symbiotic Trade: Consumes 40 Nitrogen, 40 Phosphorus, and 40 Water per tick | Yield: +400 Carbon per tick.
-- **Green Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +30 Water, +2 Nitrogen per tick.
-- **Coarse Dirt (6):** Cost: 100 Carbon + 25 Water | Yield: +3 Nitrogen, +3 Phosphorus per tick.
+- **Pine (27):** Cost: 100 Carbon + 35 Water | Symbiotic Trade: Consumes 15 Nitrogen, 10 Phosphorus, 8 Water per tick | Yield: +50 Carbon per tick.
+- **Oak (20):** Cost: 100 Carbon + 50 Water | Symbiotic Trade: Consumes 20 Nitrogen, 20 Phosphorus, 15 Water per tick | Yield: +100 Carbon per tick.
+- **Green Puddle (8):** Cost: 100 Carbon + 10 Water | Yield: +20 Carbon, +30 Nitrogen, +20 Phosphorus, +20 Water per tick.
+- **Coarse Dirt (6):** Cost: 100 Carbon + 25 Water | Yield: +2 Carbon, +15 Nitrogen, +20 Phosphorus, +2 Water per tick.
 
 ### Phase 5: Climax Forest Dominance
 
-*Context: Old-growth climax forest. The map collapses into a strict binary layout: 47 massive Ancient Oaks and 14 floor-covering Leaf Litters.*
+*Context: Old-growth climax forest. The map collapses into a strict binary layout: 47 massive Oaks and 14 floor-covering Leaf Litters.*
 
-- **Ancient Oak (47):** Cost: 50 Carbon + 50 Water | Symbiotic Trade: Consumes 40 Nitrogen, 40 Phosphorus, and 40 Water per tick | Yield: +400 Carbon per tick.
-- **Leaf Litter (14):** Cost: 50 Carbon + 25 Water | Yield: +15 Nitrogen, +15 Phosphorus, +15 Water per tick.
+- **Oak (47):** Cost: 100 Carbon + 50 Water | Symbiotic Trade: Consumes 20 Nitrogen, 20 Phosphorus, 15 Water per tick | Yield: +100 Carbon per tick.
+- **Leaf Litter (14):** Cost: 100 Carbon + 25 Water | Yield: +5 Carbon, +20 Nitrogen, +20 Phosphorus, +8 Water per tick.
 
 ## 5. Software Application Logic & Interface Rules
 
@@ -160,8 +161,9 @@ If a player falls short on even a single required mineral or water point, the fu
 
 - **The Ultimate Goal:** Fungi expand to maximize genetic dispersal via spores. Spores are purchased on the app screen via the `SPORE` button at a steep premium:
 
-1 Spore Point = 400 Carbon + 100 Nitrogen + 100 Phosphorus + 100 Water
+1 Spore Point = 500 Carbon + 50 Nitrogen + 50 Phosphorus + 50 Water
 
+- **Partial Sporing:** Because in the end game ressources might go into the red for trading situations the spore button should be able to be hold to continually prioritize investing into sporing.
 - **Winning the Game:** When Phase 5's timer hits zero, the app completely locks down. The player who has accumulated the highest number of **Spore Points** on their app ledger wins the match.
 - **The Tiebreaker:** Players decide on their own.
 
@@ -169,6 +171,6 @@ If a player falls short on even a single required mineral or water point, the fu
 
 To maximize the game's academic evaluation metrics, the rulebook writer must explicitly emphasize these structural bottlenecks within the text:
 
-1. **The Phase 5 Trap:** The manual must warn players that **Ancient Oaks are a double-edged sword**. They produce a massive +400 Carbon, but their upkeep requirement (40/40/40) is enormous. Because there are 47 Oaks but only 14 Leaf Litter nutrient sources in Phase 5, players must use foresight in Phase 3 and 4 to hoard extra Water, Nitrogen, and Phosphorus. Entering Phase 5 with empty wallets and multiple Oak claims will trigger a catastrophic systemic breakdown, freezing their network completely.
+1. **The Phase 5 Trap:** The manual must warn players that **Oaks are a double-edged sword**. They produce a massive +400 Carbon, but their upkeep requirement (40/40/40) is enormous. Because there are 47 Oaks but only 14 Leaf Litter nutrient sources in Phase 5, players must use foresight in Phase 3 and 4 to hoard extra Water, Nitrogen, and Phosphorus. Entering Phase 5 with empty wallets and multiple Oak claims will trigger a catastrophic systemic breakdown, freezing their network completely.
 2. **The Stacking War:** The manual needs to frame vertical stacking as a high-friction defensive action. Stacking forces players into close-quarters territorial combat over the few remaining Leaf Litter tiles, driving the fast-paced, cutthroat table dynamic required for a 20-minute game window.
 3. The manual needs to show a nice succession chart.

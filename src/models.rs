@@ -153,18 +153,18 @@ pub enum TileType {
   CharredGrass,
   Puddle,
   DryDirt,
-  RegularDirt,
-  PioneerGrass,
-  LowShrub,
+  Dirt,
+  Grass,
+  Shrub,
   Flowers,
   Saplings,
-  SproutingGrass,
-  WoodyShrub,
+  Moss,
+  Clover,
   BerryBush,
   Ferns,
-  YoungPine,
-  FastPine,
-  AncientOak,
+  Birch,
+  Pine,
+  Oak,
   GreenPuddle,
   CoarseDirt,
   LeafLitter,
@@ -185,6 +185,24 @@ pub struct GameState {
   pub is_overstacked_menu_opened: bool,
   pub active_nodes: Vec<BaseTileType>,
   pub spore_points: u32,
+  pub spore_fraction: f32,
+  pub spore_investing: bool,
+}
+impl GameState {
+  pub fn new() -> Self {
+    Self {
+      is_paused: false,
+      current_phase: 1,
+      phase_timer: PHASE_LENGTH,
+      resource_pool: Resources::new(START_CARBON, START_NITROGEN, START_PHOSPHORUS, START_WATER),
+      is_resource_missing: IsResourceMissing::default(),
+      is_overstacked_menu_opened: false,
+      active_nodes: vec![BaseTileType::Puddle], // Free starting token
+      spore_points: 0,
+      spore_fraction: 0.0,
+      spore_investing: false,
+    }
+  }
 }
 
 #[derive(Clone, Debug)]
@@ -196,10 +214,10 @@ pub enum GameMode {
 }
 
 pub const SPORE_POINT_COSTS: Resources = Resources {
-  carbon: 400.0,
-  nitrogen: 100.0,
-  phosphorus: 100.0,
-  water: 100.0,
+  carbon: 500.0,
+  nitrogen: 50.0,
+  phosphorus: 50.0,
+  water: 50.0,
 };
 
 pub const TICK_LENGTH: f32 = 5.0;
@@ -208,36 +226,38 @@ pub const START_CARBON: f32 = 200.0;
 pub const START_NITROGEN: f32 = 50.0;
 pub const START_PHOSPHORUS: f32 = 50.0;
 pub const START_WATER: f32 = 50.0;
-pub const SYNC_HOLD_TIME: f32 = 10.0;
+pub const SYNC_HOLD_TIME: f32 = 1.0;
 
 impl BaseTileType {
   pub fn get_current_tile_type(&self, phase: u8) -> TileType {
     match self {
       BaseTileType::Ash => match phase {
         1 => TileType::Ash,
-        2 => TileType::RegularDirt,
-        3 => TileType::SproutingGrass,
-        4 => TileType::FastPine,
-        _ => TileType::AncientOak,
+        2 => TileType::Dirt,
+        3 => TileType::Moss,
+        4 => TileType::Pine,
+        _ => TileType::Oak,
       },
       BaseTileType::CharredFallenLog => match phase {
         1 => TileType::CharredFallenLog,
-        2 => TileType::PioneerGrass,
-        3 => TileType::WoodyShrub,
-        4 => TileType::FastPine,
-        _ => TileType::AncientOak,
+        2 => TileType::Grass,
+        3 => TileType::Clover,
+        4 => TileType::Pine,
+        _ => TileType::Oak,
       },
       BaseTileType::CharredTreeTrunk => match phase {
         1 => TileType::CharredTreeTrunk,
-        2 => TileType::LowShrub,
+        2 => TileType::Shrub,
         3 => TileType::BerryBush,
-        _ => TileType::AncientOak,
+        4 => TileType::Oak,
+        _ => TileType::Oak,
       },
       BaseTileType::CharredGrass => match phase {
         1 => TileType::CharredGrass,
         2 => TileType::Flowers,
         3 => TileType::Ferns,
-        _ => TileType::AncientOak,
+        4 => TileType::Oak,
+        _ => TileType::Oak,
       },
       BaseTileType::Puddle => match phase {
         1 | 2 | 3 => TileType::Puddle,
@@ -247,7 +267,7 @@ impl BaseTileType {
       BaseTileType::DryDirt => match phase {
         1 => TileType::DryDirt,
         2 => TileType::Saplings,
-        3 => TileType::YoungPine,
+        3 => TileType::Birch,
         4 => TileType::CoarseDirt,
         _ => TileType::LeafLitter,
       },
@@ -259,8 +279,8 @@ impl TileType {
   pub fn water_cost(&self) -> f32 {
     match self {
       TileType::Puddle | TileType::CharredFallenLog | TileType::Ferns | TileType::LeafLitter | TileType::GreenPuddle => 10.0,
-      TileType::Ash | TileType::CharredGrass | TileType::DryDirt | TileType::RegularDirt | TileType::PioneerGrass | TileType::LowShrub | TileType::Flowers | TileType::Saplings | TileType::SproutingGrass | TileType::WoodyShrub | TileType::BerryBush | TileType::CoarseDirt => 25.0,
-      TileType::CharredTreeTrunk | TileType::YoungPine | TileType::FastPine | TileType::AncientOak => 50.0,
+      TileType::Ash | TileType::CharredGrass | TileType::DryDirt | TileType::Dirt | TileType::Grass | TileType::Shrub | TileType::Flowers | TileType::Saplings | TileType::Moss | TileType::Clover | TileType::BerryBush | TileType::CoarseDirt => 25.0,
+      TileType::CharredTreeTrunk | TileType::Birch | TileType::Pine | TileType::Oak => 50.0,
     }
   }
 
@@ -272,87 +292,87 @@ impl TileType {
     match self {
       TileType::Ash => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 3.0, 3.0, 0.0),
+        yields_per_tick: Resources::new(20.0, 3.0, 5.0, 0.0),
       },
       TileType::CharredFallenLog => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 2.0, 0.0, 0.0)),
-        yields_per_tick: Resources::new(15.0, 0.0, 0.0, 0.0),
+        consumes_per_tick: Some(Resources::new(0.0, 2.0, 0.0, 1.0)),
+        yields_per_tick: Resources::new(20.0, 0.0, 0.0, 0.0),
       },
       TileType::CharredTreeTrunk => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 0.0, 4.0, 0.0)),
+        consumes_per_tick: Some(Resources::new(0.0, 0.0, 4.0, 2.0)),
         yields_per_tick: Resources::new(25.0, 0.0, 0.0, 0.0),
       },
       TileType::CharredGrass => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(3.0, 1.0, 1.0, 0.0),
+        yields_per_tick: Resources::new(12.0, 4.0, 10.0, 0.0),
       },
       TileType::Puddle => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 0.0, 0.0, 30.0),
+        yields_per_tick: Resources::new(0.0, 0.0, 0.0, 15.0),
       },
       TileType::DryDirt => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 1.0, 1.0, 1.0),
+        yields_per_tick: Resources::new(10.0, 6.0, 4.0, 4.0),
       },
-      TileType::RegularDirt => Trade {
+      TileType::Dirt => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 2.0, 2.0, 2.0),
+        yields_per_tick: Resources::new(0.0, 20.0, 20.0, 2.0),
       },
-      TileType::PioneerGrass => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 0.0, 0.0, 2.0)),
-        yields_per_tick: Resources::new(6.0, 0.0, 0.0, 4.0),
+      TileType::Grass => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 3.0, 0.0, 3.0)),
+        yields_per_tick: Resources::new(20.0, 0.0, 0.0, 0.0),
       },
-      TileType::LowShrub => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 2.0, 2.0, 0.0)),
-        yields_per_tick: Resources::new(12.0, 0.0, 0.0, 2.0),
+      TileType::Shrub => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 0.0, 4.0, 3.0)),
+        yields_per_tick: Resources::new(30.0, 0.0, 0.0, 0.0),
       },
       TileType::Flowers => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 0.0, 4.0, 0.0)),
-        yields_per_tick: Resources::new(10.0, 0.0, 0.0, 7.0),
+        consumes_per_tick: Some(Resources::new(0.0, 2.0, 2.0, 0.0)),
+        yields_per_tick: Resources::new(30.0, 0.0, 0.0, 4.0),
       },
       TileType::Saplings => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 3.0, 0.0, 3.0)),
-        yields_per_tick: Resources::new(15.0, 0.0, 0.0, 0.0),
+        consumes_per_tick: Some(Resources::new(0.0, 4.0, 2.0, 4.0)),
+        yields_per_tick: Resources::new(40.0, 0.0, 0.0, 0.0),
       },
-      TileType::SproutingGrass => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 0.0, 0.0, 3.0)),
-        yields_per_tick: Resources::new(8.0, 0.0, 0.0, 0.0),
+      TileType::Moss => Trade {
+        consumes_per_tick: None,
+        yields_per_tick: Resources::new(12.0, 15.0, 10.0, 8.0),
       },
-      TileType::WoodyShrub => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 3.0, 3.0, 0.0)),
-        yields_per_tick: Resources::new(16.0, 0.0, 0.0, 0.0),
+      TileType::Clover => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 0.0, 2.0, 2.0)),
+        yields_per_tick: Resources::new(20.0, 12.0, 0.0, 0.0),
       },
       TileType::BerryBush => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 4.0, 2.0, 2.0)),
-        yields_per_tick: Resources::new(22.0, 0.0, 0.0, 0.0),
-      },
-      TileType::Ferns => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 0.0, 5.0, 0.0)),
-        yields_per_tick: Resources::new(14.0, 0.0, 0.0, 0.0),
-      },
-      TileType::YoungPine => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 6.0, 0.0, 6.0)),
+        consumes_per_tick: Some(Resources::new(0.0, 2.0, 6.0, 2.0)),
         yields_per_tick: Resources::new(35.0, 0.0, 0.0, 0.0),
       },
-      TileType::FastPine => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 10.0, 0.0, 10.0)),
-        yields_per_tick: Resources::new(60.0, 0.0, 0.0, 0.0),
+      TileType::Ferns => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 0.0, 0.0, 2.0)),
+        yields_per_tick: Resources::new(15.0, 8.0, 12.0, 0.0),
       },
-      TileType::AncientOak => Trade {
-        consumes_per_tick: Some(Resources::new(0.0, 40.0, 40.0, 40.0)),
-        yields_per_tick: Resources::new(400.0, 0.0, 0.0, 0.0),
+      TileType::Birch => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 10.0, 8.0, 6.0)),
+        yields_per_tick: Resources::new(45.0, 0.0, 0.0, 0.0),
+      },
+      TileType::Pine => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 15.0, 10.0, 8.0)),
+        yields_per_tick: Resources::new(50.0, 0.0, 0.0, 0.0),
+      },
+      TileType::Oak => Trade {
+        consumes_per_tick: Some(Resources::new(0.0, 20.0, 20.0, 15.0)),
+        yields_per_tick: Resources::new(100.0, 0.0, 0.0, 0.0),
       },
       TileType::GreenPuddle => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 2.0, 0.0, 30.0),
+        yields_per_tick: Resources::new(20.0, 30.0, 20.0, 20.0),
       },
       TileType::CoarseDirt => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 3.0, 3.0, 0.0),
+        yields_per_tick: Resources::new(2.0, 15.0, 20.0, 2.0),
       },
       TileType::LeafLitter => Trade {
         consumes_per_tick: None,
-        yields_per_tick: Resources::new(0.0, 15.0, 15.0, 15.0),
+        yields_per_tick: Resources::new(5.0, 20.0, 20.0, 8.0),
       },
     }
   }
@@ -365,18 +385,18 @@ impl TileType {
       TileType::CharredGrass => "Charred Grass",
       TileType::Puddle => "Puddle",
       TileType::DryDirt => "Dry Dirt",
-      TileType::RegularDirt => "Regular Dirt",
-      TileType::PioneerGrass => "Pioneer Grass",
-      TileType::LowShrub => "Low Shrub",
+      TileType::Dirt => "Dirt",
+      TileType::Grass => "Grass",
+      TileType::Shrub => "Shrub",
       TileType::Flowers => "Flowers",
       TileType::Saplings => "Saplings",
-      TileType::SproutingGrass => "Sprouting Grass",
-      TileType::WoodyShrub => "Woody Shrub",
+      TileType::Moss => "Moss",
+      TileType::Clover => "Clover",
       TileType::BerryBush => "Berry Bush",
       TileType::Ferns => "Ferns",
-      TileType::YoungPine => "Young Pine",
-      TileType::FastPine => "Fast Pine",
-      TileType::AncientOak => "Ancient Oak",
+      TileType::Birch => "Birch",
+      TileType::Pine => "Pine",
+      TileType::Oak => "Oak",
       TileType::GreenPuddle => "Green Puddle",
       TileType::CoarseDirt => "Coarse Dirt",
       TileType::LeafLitter => "Leaf Litter",
@@ -385,7 +405,7 @@ impl TileType {
 
   pub fn icon(&self) -> &'static GraphicAsset {
     match self {
-      _ => &TEST_IMAGE, // TODO: Replace with actual icons for each tile type
+      _ => &TEST_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
     }
   }
 }

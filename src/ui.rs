@@ -90,7 +90,7 @@ fn render_top_bar(ui: &mut Ui, state: &GameState) {
           resource_label(ui, "C", state.resource_pool.carbon, state.is_resource_missing.carbon, COLOR_CARBON);
           resource_label(ui, "N", state.resource_pool.nitrogen, state.is_resource_missing.nitrogen, COLOR_NITROGEN);
           resource_label(ui, "P", state.resource_pool.phosphorus, state.is_resource_missing.phosphorus, COLOR_PHOSPHORUS);
-          resource_label(ui, "H", state.resource_pool.water, state.is_resource_missing.water, COLOR_WATER);
+          resource_label(ui, "H2O", state.resource_pool.water, state.is_resource_missing.water, COLOR_WATER);
           
           ui.element().width(grow!()).empty();
           ui.text(&format!("{} SP", state.spore_points), |t| t.font_size(18).color(0xFFFFFF));
@@ -109,12 +109,12 @@ fn resource_label(ui: &mut Ui, label: &str, value: f32, is_missing: bool, color:
 }
 
 fn render_grid(ui: &mut Ui, state: &mut GameState) {
-  // TODO: Better scaling
+  // TODO: Better adaptive scaling
   let available_bases = match state.current_phase {
     1 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
     2 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
     3 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
-    4 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::Puddle, BaseTileType::DryDirt],
+    4 => vec![BaseTileType::Ash, BaseTileType::CharredTreeTrunk, BaseTileType::Puddle, BaseTileType::DryDirt],
     5 => vec![BaseTileType::Ash, BaseTileType::Puddle],
     _ => vec![],
   };
@@ -246,22 +246,32 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState) {
         state.is_overstacked_menu_opened = true;
       }
 
-      // Spore button
-      let can_afford = state.resource_pool.carbon >= SPORE_POINT_COSTS.carbon
-        && state.resource_pool.nitrogen >= SPORE_POINT_COSTS.nitrogen
-        && state.resource_pool.phosphorus >= SPORE_POINT_COSTS.phosphorus
-        && state.resource_pool.water >= SPORE_POINT_COSTS.water;
+      let spore_remainder = SPORE_POINT_COSTS * (1.0 - state.spore_fraction);
+      let spore_remainder_payable = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder).0;
+      let spore_total_payable = state.spore_fraction + ((1.0 - state.spore_fraction) * spore_remainder_payable);
+
+      let can_afford = spore_total_payable == 1.0;
 
       let spore_id = ui.element().width(grow!()).height(fixed!(50.0))
-        .background_color(if can_afford { COLOR_PHOSPHORUS } else { 0x222222 })
+        .background_color(if can_afford { GREEN } else { YELLOW })
         .corner_radius(4.0)
+        .layout(|l| l.direction(TopToBottom))
         .children(|ui| {
-          ui.text("BUY SPORE", |t| t.color(if can_afford { 0x000000 } else { 0x555555 }).font_size(16));
+          ui.text(&format!("SPORE {}%", (spore_total_payable * 100.0) as u32), |t| t.color(BLACK).font_size(16));
+          ui.text(&format_resources_short(&SPORE_POINT_COSTS), |t| t
+            .color(BLACK)
+            .font_size(12)
+          );
         });
-      if ui.is_just_pressed(spore_id) && can_afford {
-        state.resource_pool -= SPORE_POINT_COSTS;
+      
+      state.spore_investing = if can_afford && ui.is_just_pressed(spore_id.clone()) {
+        state.resource_pool -= spore_remainder;
         state.spore_points += 1;
-      }
+        state.spore_fraction = 0.0;
+        false
+      } else {
+        ui.is_pressed(spore_id)
+      };
     });
 }
 

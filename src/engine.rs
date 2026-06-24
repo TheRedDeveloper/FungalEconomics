@@ -7,18 +7,7 @@ pub fn update_game(mode: &mut GameMode, dt: f32) -> Option<SoundEffect> {
       if is_mouse_button_down(MouseButton::Left) {
         *hold_accumulation += dt;
         if *hold_accumulation >= SYNC_HOLD_TIME {
-          *mode = GameMode::Playing {
-            state: GameState {
-              is_paused: false,
-              current_phase: 1,
-              phase_timer: PHASE_LENGTH,
-              resource_pool: Resources::new(START_CARBON, START_NITROGEN, START_PHOSPHORUS, START_WATER),
-              is_resource_missing: IsResourceMissing::default(),
-              is_overstacked_menu_opened: false,
-              active_nodes: vec![BaseTileType::Ash], // Free starting token
-              spore_points: 0,
-            },
-          };
+          *mode = GameMode::Playing { state: GameState::new() };
           return Some(SoundEffect::NextPhase);
         }
       } else {
@@ -68,6 +57,15 @@ fn process_metabolism(state: &mut GameState, dt: f32) {
   let scale = dt / TICK_LENGTH;
   state.is_resource_missing = IsResourceMissing::default();
 
+  if state.spore_investing {
+    let frac_remaining = 1.0 - state.spore_fraction;
+    let spore_remainder = SPORE_POINT_COSTS * frac_remaining;
+    let (frac, missing) = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder);
+    state.is_resource_missing |= missing;
+    state.spore_fraction += frac_remaining * frac;
+    state.resource_pool -= spore_remainder * frac;
+  }
+
   for node_base in &state.active_nodes {
     let tile_type = node_base.get_current_tile_type(state.current_phase);
     let trade = tile_type.get_trade();
@@ -84,6 +82,15 @@ fn process_metabolism(state: &mut GameState, dt: f32) {
     };
 
     state.resource_pool += trade.yields_per_tick * (scale * fraction);
+    
+    if state.spore_investing {
+      let frac_remaining = 1.0 - state.spore_fraction;
+      let spore_remainder = SPORE_POINT_COSTS * frac_remaining;
+      let (frac, missing) = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder);
+      state.is_resource_missing |= missing;
+      state.spore_fraction += frac_remaining * frac;
+      state.resource_pool -= spore_remainder * frac;
+    }
   }
 }
 
