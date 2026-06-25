@@ -40,6 +40,7 @@ pub fn update_game(mode: &mut GameMode, dt: f32) -> Option<SoundEffect> {
         *hold_accumulator += dt;
         if *hold_accumulator >= SYNC_HOLD_TIME {
           state.current_phase += 1;
+          state.reset_button_data();
           state.phase_timer = PHASE_LENGTH;
           *mode = GameMode::Playing { state: state.clone() };
           return Some(SoundEffect::NextPhase);
@@ -56,14 +57,23 @@ pub fn update_game(mode: &mut GameMode, dt: f32) -> Option<SoundEffect> {
 fn process_metabolism(state: &mut GameState, dt: f32) {
   let scale = dt / TICK_LENGTH;
   state.is_resource_missing = IsResourceMissing::default();
+  state.resource_pool += BASE_INCOME * scale;
+  state.income_per_tick = BASE_INCOME;
 
-  if state.spore_investing {
-    let frac_remaining = 1.0 - state.spore_fraction;
-    let spore_remainder = SPORE_POINT_COSTS * frac_remaining;
-    let (frac, missing) = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder);
-    state.is_resource_missing |= missing;
-    state.spore_fraction += frac_remaining * frac;
-    state.resource_pool -= spore_remainder * frac;
+  for button in &mut state.invest_button_data {
+    if button.is_investing {
+      let frac_remaining = 1.0 - button.fraction;
+      let remainder = button.amount * frac_remaining;
+      let (frac, missing) = state.resource_pool.minimum_fraction_fulfilled(&remainder);
+      state.is_resource_missing |= missing;
+      button.fraction += frac_remaining * frac;
+      state.resource_pool -= remainder * frac;
+    } else {
+      // drain 100% of the fraction over DRAIN_TIME seconds
+      let drain_amount = (dt / DRAIN_TIME).min(button.fraction);
+      button.fraction -= drain_amount;
+      state.resource_pool += button.amount * drain_amount;
+    }
   }
 
   for node_base in &state.active_nodes {
@@ -76,20 +86,24 @@ fn process_metabolism(state: &mut GameState, dt: f32) {
       state.is_resource_missing |= missing;
       
       state.resource_pool -= actual_consumptions * frac;
+      state.income_per_tick -= actual_consumptions * frac;
       frac
     } else {
       1.0
     };
 
     state.resource_pool += trade.yields_per_tick * (scale * fraction);
-    
-    if state.spore_investing {
-      let frac_remaining = 1.0 - state.spore_fraction;
-      let spore_remainder = SPORE_POINT_COSTS * frac_remaining;
-      let (frac, missing) = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder);
-      state.is_resource_missing |= missing;
-      state.spore_fraction += frac_remaining * frac;
-      state.resource_pool -= spore_remainder * frac;
+    state.income_per_tick += trade.yields_per_tick * (scale * fraction);
+
+    for button in &mut state.invest_button_data {
+      if button.is_investing {
+        let frac_remaining = 1.0 - button.fraction;
+        let remainder = button.amount * frac_remaining;
+        let (frac, missing) = state.resource_pool.minimum_fraction_fulfilled(&remainder);
+        state.is_resource_missing |= missing;
+        button.fraction += frac_remaining * frac;
+        state.resource_pool -= remainder * frac;
+      }
     }
   }
 }

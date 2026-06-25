@@ -110,14 +110,7 @@ fn resource_label(ui: &mut Ui, label: &str, value: f32, is_missing: bool, color:
 
 fn render_grid(ui: &mut Ui, state: &mut GameState) {
   // TODO: Better adaptive scaling
-  let available_bases = match state.current_phase {
-    1 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
-    2 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
-    3 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
-    4 => vec![BaseTileType::Ash, BaseTileType::CharredTreeTrunk, BaseTileType::Puddle, BaseTileType::DryDirt],
-    5 => vec![BaseTileType::Ash, BaseTileType::Puddle],
-    _ => vec![],
-  };
+  let available_bases = BaseTileType::base_types_by_phase(state.current_phase);
 
   let cols = if screen_width() > screen_height() { 3 } else { 2 };
 
@@ -246,32 +239,45 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState) {
         state.is_overstacked_menu_opened = true;
       }
 
-      let spore_remainder = SPORE_POINT_COSTS * (1.0 - state.spore_fraction);
+      let spore_data = state.invest_button_data.last_mut().expect("Where did the button data go????");
+      let spore_remainder = SPORE_POINT_COSTS * (1.0 - spore_data.fraction);
       let spore_remainder_payable = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder).0;
-      let spore_total_payable = state.spore_fraction + ((1.0 - state.spore_fraction) * spore_remainder_payable);
+      let spore_total_payable = spore_data.fraction + ((1.0 - spore_data.fraction) * spore_remainder_payable);
 
       let can_afford = spore_total_payable == 1.0;
 
       let spore_id = ui.element().width(grow!()).height(fixed!(50.0))
-        .background_color(if can_afford { GREEN } else { YELLOW })
+        .background_color(0x333333)
         .corner_radius(4.0)
         .layout(|l| l.direction(TopToBottom))
         .children(|ui| {
-          ui.text(&format!("SPORE {}%", (spore_total_payable * 100.0) as u32), |t| t.color(BLACK).font_size(16));
+          ui.text("SPORE", |t| t.color(WHITE).font_size(16));
           ui.text(&format_resources_short(&SPORE_POINT_COSTS), |t| t
-            .color(BLACK)
+            .color(WHITE)
             .font_size(12)
           );
+          ui.element().width(grow!()).height(grow!())
+            .image(
+              render_to_texture(100.0, 1.0, || {
+                clear_background(BLACK);
+                draw_rectangle(0.0, 0.0, 100.0 * spore_total_payable, 1.0, GREEN);
+                draw_rectangle(0.0, 0.0, 100.0 * spore_data.fraction, 1.0, YELLOW);
+              })
+            )
+            .empty();
         });
       
-      state.spore_investing = if can_afford && ui.is_just_pressed(spore_id.clone()) {
-        state.resource_pool -= spore_remainder;
-        state.spore_points += 1;
-        state.spore_fraction = 0.0;
-        false
-      } else {
-        ui.is_pressed(spore_id)
-      };
+      let pressed = ui.is_pressed(spore_id);
+
+      spore_data.is_investing =
+        if can_afford && pressed {
+          state.resource_pool -= spore_remainder;
+          state.spore_points += 1;
+          spore_data.fraction = 0.0;
+          false
+        } else {
+          pressed
+        };
     });
 }
 

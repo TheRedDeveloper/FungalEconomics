@@ -176,6 +176,13 @@ pub struct Trade {
 }
 
 #[derive(Clone, Debug)]
+pub struct ButtonData {
+  pub is_investing: bool,
+  pub amount: Resources,
+  pub fraction: f32,
+}
+
+#[derive(Clone, Debug)]
 pub struct GameState {
   pub is_paused: bool,
   pub current_phase: u8, // 1 to 5
@@ -185,12 +192,12 @@ pub struct GameState {
   pub is_overstacked_menu_opened: bool,
   pub active_nodes: Vec<BaseTileType>,
   pub spore_points: u32,
-  pub spore_fraction: f32,
-  pub spore_investing: bool,
+  pub invest_button_data: Vec<ButtonData>, // last is always "spore" button, rest are for node buying
+  pub income_per_tick: Resources,
 }
 impl GameState {
   pub fn new() -> Self {
-    Self {
+    let mut new = Self {
       is_paused: false,
       current_phase: 1,
       phase_timer: PHASE_LENGTH,
@@ -199,9 +206,34 @@ impl GameState {
       is_overstacked_menu_opened: false,
       active_nodes: vec![BaseTileType::Puddle], // Free starting token
       spore_points: 0,
-      spore_fraction: 0.0,
-      spore_investing: false,
+      invest_button_data: vec![],
+      income_per_tick: BASE_INCOME,
+    };
+    new.reset_button_data();
+    new
+  }
+
+  pub fn reset_button_data(&mut self) {
+    self.invest_button_data.clear();
+    for base in BaseTileType::base_types_by_phase(self.current_phase) {
+      let tile = base.get_current_tile_type(self.current_phase);
+      let cost = Resources {
+        carbon: tile.expansion_carbon_cost(),
+        water: tile.water_cost(),
+        nitrogen: 0.0,
+        phosphorus: 0.0,
+      };
+      self.invest_button_data.push(ButtonData {
+        is_investing: false,
+        amount: cost,
+        fraction: 0.0,
+      });
     }
+    self.invest_button_data.push(ButtonData {
+      is_investing: false,
+      amount: SPORE_POINT_COSTS,
+      fraction: 0.0,
+    });
   }
 }
 
@@ -227,6 +259,14 @@ pub const START_NITROGEN: f32 = 50.0;
 pub const START_PHOSPHORUS: f32 = 50.0;
 pub const START_WATER: f32 = 50.0;
 pub const SYNC_HOLD_TIME: f32 = 1.0;
+pub const DRAIN_TIME: f32 = 1.0;
+
+pub const BASE_INCOME: Resources = Resources {
+  carbon: 1.0,
+  nitrogen: 1.0,
+  phosphorus: 1.0,
+  water: 1.0,
+};
 
 impl BaseTileType {
   pub fn get_current_tile_type(&self, phase: u8) -> TileType {
@@ -271,6 +311,17 @@ impl BaseTileType {
         4 => TileType::CoarseDirt,
         _ => TileType::LeafLitter,
       },
+    }
+  }
+
+  pub fn base_types_by_phase(phase: u8) -> Vec<BaseTileType> {
+    match phase {
+      1 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
+      2 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
+      3 => vec![BaseTileType::Ash, BaseTileType::CharredFallenLog, BaseTileType::CharredTreeTrunk, BaseTileType::CharredGrass, BaseTileType::Puddle, BaseTileType::DryDirt],
+      4 => vec![BaseTileType::Ash, BaseTileType::CharredTreeTrunk, BaseTileType::Puddle, BaseTileType::DryDirt],
+      5 => vec![BaseTileType::Ash, BaseTileType::Puddle],
+      _ => vec![],
     }
   }
 }
