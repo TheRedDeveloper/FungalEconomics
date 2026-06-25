@@ -87,23 +87,24 @@ fn render_top_bar(ui: &mut Ui, state: &GameState) {
       ui.element().width(grow!()).height(fit!())
         .layout(|l| l.gap(15))
         .children(|ui| {
-          resource_label(ui, "C", state.resource_pool.carbon, state.is_resource_missing.carbon, COLOR_CARBON);
-          resource_label(ui, "N", state.resource_pool.nitrogen, state.is_resource_missing.nitrogen, COLOR_NITROGEN);
-          resource_label(ui, "P", state.resource_pool.phosphorus, state.is_resource_missing.phosphorus, COLOR_PHOSPHORUS);
-          resource_label(ui, "H2O", state.resource_pool.water, state.is_resource_missing.water, COLOR_WATER);
-          
+          resource_label(ui, "C", state.resource_pool.carbon, state.is_resource_missing.carbon && state.resource_pool.carbon < 0.5, COLOR_CARBON, (state.income_per_tick.carbon / 1000.0).min(1.0));
+          resource_label(ui, "N", state.resource_pool.nitrogen, state.is_resource_missing.nitrogen && state.resource_pool.nitrogen < 0.5, COLOR_NITROGEN, (state.income_per_tick.nitrogen / 100.0).min(1.0));
+          resource_label(ui, "P", state.resource_pool.phosphorus, state.is_resource_missing.phosphorus && state.resource_pool.phosphorus < 0.5, COLOR_PHOSPHORUS, (state.income_per_tick.phosphorus / 100.0).min(1.0));
+          resource_label(ui, "H2O", state.resource_pool.water, state.is_resource_missing.water && state.resource_pool.water < 0.5, COLOR_WATER, (state.income_per_tick.water / 100.0).min(1.0));
+
           ui.element().width(grow!()).empty();
           ui.text(&format!("{} SP", state.spore_points), |t| t.font_size(18).color(0xFFFFFF));
         });
     });
 }
 
-fn resource_label(ui: &mut Ui, label: &str, value: f32, is_missing: bool, color: u32) {
+/// excitement is a value between 0.0 and 1.0 that controls the wave effect of the number
+fn resource_label(ui: &mut Ui, label: &str, value: f32, is_missing: bool, color: u32, excitement: f32) {
   let display_color = if is_missing { COLOR_RED } else { color };
   ui.element().width(fit!()).height(fit!())
     .layout(|l| l.gap(2))
     .children(|ui| {
-      ui.text(&format!("{}", value.floor() as i32), |t| t.font_size(16).color(display_color));
+      ui.text(&format!("{{pulse_f={:.2}_a={:.2}|{{wave_f={:.2}_a={:.2}|{}}}}}", excitement / 3.0, excitement / 10.0, excitement / 3.0, excitement / 10.0, value.floor() as i32), |t| t.font_size(16).color(display_color));
       ui.text(&format!("{}", label), |t| t.font_size(14).color(0xFFFFFF));
     });
 }
@@ -131,15 +132,20 @@ fn render_grid(ui: &mut Ui, state: &mut GameState) {
 }
 
 fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, button_index: usize) {
-  let tile = base.get_current_tile_type(state.current_phase);
-  let (cost, fraction) = {
+  let (amount, fraction, is_investing_current) = {
     let button = state
       .invest_button_data
       .get(button_index)
       .expect("Missing tile investment button data");
-    (button.amount, button.fraction)
+    (button.amount.clone(), button.fraction, button.is_investing)
   };
-  let (total_payable, can_complete) = investment_status(&state.resource_pool, &cost, fraction);
+  let tile = base.get_current_tile_type(state.current_phase);
+
+  let remainder = amount * (1.0 - fraction);
+  let remainder_payable = state.resource_pool.minimum_fraction_fulfilled(&remainder).0;
+  let total_payable = fraction + ((1.0 - fraction) * remainder_payable);
+  let can_afford = total_payable == 1.0;
+
   let trade = tile.get_trade();
   let id = Id::new_index("tile_btn", base as u32);
 
@@ -150,22 +156,18 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
     .border(|b| b.all(1).color(0x333333))
     .layout(|l| l.direction(TopToBottom).padding(8).gap(5).align(CenterX, CenterY))
     .children(|ui| {
-      let pressed = ui.is_pressed(id);
-      let mut is_investing = pressed;
-
-      if can_complete && pressed {
-        state.resource_pool -= cost;
+      let pressed = ui.is_pressed(id.clone());
+      let just_pressed = ui.is_just_pressed(id);
+      let is_investing = if can_afford && ((pressed && is_investing_current) || just_pressed) {
+        state.resource_pool -= remainder;
         state.active_nodes.push(base);
-
-        let button = state
-          .invest_button_data
-          .get_mut(button_index)
-          .expect("Missing tile investment button data");
+        let button = state.invest_button_data.get_mut(button_index).unwrap();
         button.fraction = 0.0;
-        is_investing = false;
-      }
+        false
+      } else {
+        just_pressed || (pressed && is_investing_current)
+      };
 
-      // Image placeholder
       ui.element().width(fixed!(64.0)).height(fixed!(64.0))
         .image(tile.icon()).empty();
 
@@ -204,12 +206,12 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
           .gap(5)
         )
         .children(|ui| {
-          ui.text(&format!("-{}C", cost.carbon as i32), |t| {
-            let c = if state.resource_pool.carbon < cost.carbon { COLOR_RED } else { 0xAAAAAA };
+          ui.text(&format!("-{}C", amount.carbon as i32), |t| {
+            let c = if state.resource_pool.carbon < amount.carbon { COLOR_RED } else { 0xAAAAAA };
             t.font_size(11).color(c)
           });
-          ui.text(&format!("-{}H", cost.water as i32), |t| {
-            let c = if state.resource_pool.water < cost.water { COLOR_RED } else { 0xAAAAAA };
+          ui.text(&format!("-{}H", amount.water as i32), |t| {
+            let c = if state.resource_pool.water < amount.water { COLOR_RED } else { 0xAAAAAA };
             t.font_size(11).color(c)
           });
         });
@@ -222,18 +224,10 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
     });
 }
 
-fn investment_status(resources: &Resources, cost: &Resources, fraction: f32) -> (f32, bool) {
-  let remainder = *cost * (1.0 - fraction);
-  let remainder_payable = resources.minimum_fraction_fulfilled(&remainder).0;
-  let total_payable = fraction + ((1.0 - fraction) * remainder_payable);
-
-  (total_payable, total_payable == 1.0)
-}
-
 fn render_investment_bar(width: f32, height: f32, total_payable: f32, invested_fraction: f32) -> Texture2D {
   render_to_texture(width, height, || {
     clear_background(BLACK);
-    draw_rectangle(0.0, 0.0, width * total_payable, height, GREEN);
+    draw_rectangle(0.0, 0.0, width * total_payable, height, if total_payable == 1.0 { GREEN } else { RED });
     draw_rectangle(0.0, 0.0, width * invested_fraction, height, YELLOW);
   })
 }
@@ -294,16 +288,17 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState) {
             .empty();
         });
       
-      let pressed = ui.is_pressed(spore_id);
+      let pressed = ui.is_pressed(spore_id.clone());
+      let just_pressed = ui.is_just_pressed(spore_id);
 
       spore_data.is_investing =
-        if can_afford && pressed {
+        if can_afford && ((pressed && spore_data.is_investing) || just_pressed) {
           state.resource_pool -= spore_remainder;
           state.spore_points += 1;
           spore_data.fraction = 0.0;
           false
         } else {
-          pressed
+          just_pressed || (pressed && spore_data.is_investing)
         };
     });
 }

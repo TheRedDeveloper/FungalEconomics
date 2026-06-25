@@ -86,14 +86,14 @@ fn process_metabolism(state: &mut GameState, dt: f32) {
       state.is_resource_missing |= missing;
       
       state.resource_pool -= actual_consumptions * frac;
-      state.income_per_tick -= actual_consumptions * frac;
+      state.income_per_tick -= consumes * frac;
       frac
     } else {
       1.0
     };
 
-    state.resource_pool += trade.yields_per_tick * (scale * fraction);
-    state.income_per_tick += trade.yields_per_tick * (scale * fraction);
+    state.resource_pool += trade.yields_per_tick * scale * fraction;
+    state.income_per_tick += trade.yields_per_tick * fraction;
 
     for button in &mut state.invest_button_data {
       if button.is_investing {

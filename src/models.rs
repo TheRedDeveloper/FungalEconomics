@@ -262,10 +262,10 @@ pub const SYNC_HOLD_TIME: f32 = 1.0;
 pub const DRAIN_TIME: f32 = 1.0;
 
 pub const BASE_INCOME: Resources = Resources {
-  carbon: 1.0,
-  nitrogen: 1.0,
-  phosphorus: 1.0,
-  water: 1.0,
+  carbon: 5.0,
+  nitrogen: 5.0,
+  phosphorus: 5.0,
+  water: 5.0,
 };
 
 impl BaseTileType {
