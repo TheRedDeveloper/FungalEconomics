@@ -192,28 +192,14 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
           ui.text(&format_yield_short(&trade.yields_per_tick), |t| t.font_size(12).color(0xFFFFFF));
         });
 
-      ui.element().width(fixed!(124.0)).height(fixed!(8.0))
-        .image(render_investment_bar(124.0, 8.0, total_payable, fraction))
-        .empty();
-
-      ui.element().width(grow!()).empty();
-
-      // Cost info
-      ui.element().width(grow!()).height(fit!())
-        .layout(|l| l
-          .direction(LeftToRight)
-          .align(CenterX, CenterY)
-          .gap(5)
-        )
+      ui.element().width(fixed!(75.0)).height(fixed!(16.0))
+        .image(render_investment_bar(75.0, total_payable, fraction))
+        .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)))
+        .corner_radius(10.0)
+        .layout(|l| l.align(CenterX, CenterY))
+        .border(|b| b.all(1).color(if can_afford { 0x016128 } else { 0xB01B2E }).position(Middle))
         .children(|ui| {
-          ui.text(&format!("-{}C", amount.carbon as i32), |t| {
-            let c = if state.resource_pool.carbon < amount.carbon { COLOR_RED } else { 0xAAAAAA };
-            t.font_size(11).color(c)
-          });
-          ui.text(&format!("-{}H", amount.water as i32), |t| {
-            let c = if state.resource_pool.water < amount.water { COLOR_RED } else { 0xAAAAAA };
-            t.font_size(11).color(c)
-          });
+          ui.text(&format!("-{}C -{}H", amount.carbon as i32, amount.water as i32), |t| t.font_size(11).color(WHITE));
         });
 
       let button = state
@@ -224,11 +210,11 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
     });
 }
 
-fn render_investment_bar(width: f32, height: f32, total_payable: f32, invested_fraction: f32) -> Texture2D {
-  render_to_texture(width, height, || {
+fn render_investment_bar(width: f32, total_payable: f32, invested_fraction: f32) -> Texture2D {
+  render_to_texture(width, 1.0, || {
     clear_background(BLACK);
-    draw_rectangle(0.0, 0.0, width * total_payable, height, if total_payable == 1.0 { GREEN } else { RED });
-    draw_rectangle(0.0, 0.0, width * invested_fraction, height, YELLOW);
+    draw_rectangle(0.0, 0.0, width * total_payable, 1.0, if total_payable == 1.0 { Color::from(0x008F39).into() } else { Color::from(0xB01B2E).into() });
+    draw_rectangle(0.0, 0.0, width * invested_fraction, 1.0, Color::from(0xD4AF37).into());
   })
 }
 
@@ -284,7 +270,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState) {
             .font_size(12)
           );
           ui.element().width(grow!()).height(grow!())
-            .image(render_investment_bar(screen_width(), 1.0, spore_total_payable, spore_data.fraction))
+            .image(render_investment_bar(screen_width(), spore_total_payable, spore_data.fraction))
             .empty();
         });
       

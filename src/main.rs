@@ -54,6 +54,7 @@ async fn main() {
     render_ui(&mut ui, &mut mode);
     ui.show(|_| {}).await;
 
+    draw_fps();
     next_frame().await;
   }
 }
