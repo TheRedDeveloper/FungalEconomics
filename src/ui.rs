@@ -117,24 +117,29 @@ fn render_grid(ui: &mut Ui, state: &mut GameState) {
   ui.element().width(fit!()).height(fit!())
     .layout(|l| l.direction(TopToBottom).gap(15).align(CenterX, CenterY))
     .children(|ui| {
-      for row in available_bases.chunks(cols as usize) {
+      for (row_index, row) in available_bases.chunks(cols as usize).enumerate() {
         ui.element().width(fit!()).height(fit!())
           .layout(|l| l.gap(15))
           .children(|ui| {
-            for base in row {
-              render_tile_button(ui, state, *base);
+            for (col_index, base) in row.iter().enumerate() {
+              let button_index = row_index * cols as usize + col_index;
+              render_tile_button(ui, state, *base, button_index);
             }
           });
       }
     });
 }
 
-fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType) {
-  // TODO: Make this look good
+fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, button_index: usize) {
   let tile = base.get_current_tile_type(state.current_phase);
-  let cost_c = tile.expansion_carbon_cost();
-  let cost_w = tile.water_cost();
-  let can_afford = state.resource_pool.carbon >= cost_c && state.resource_pool.water >= cost_w;
+  let (cost, fraction) = {
+    let button = state
+      .invest_button_data
+      .get(button_index)
+      .expect("Missing tile investment button data");
+    (button.amount, button.fraction)
+  };
+  let (total_payable, can_complete) = investment_status(&state.resource_pool, &cost, fraction);
   let trade = tile.get_trade();
   let id = Id::new_index("tile_btn", base as u32);
 
@@ -142,20 +147,22 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType) {
     .id(id.clone())
     .background_color(COLOR_CARD_BG)
     .corner_radius(8.0)
-    .border(|b| b.all(if can_afford { 1 } else { 0 }).color(0x333333))
+    .border(|b| b.all(1).color(0x333333))
     .layout(|l| l.direction(TopToBottom).padding(8).gap(5).align(CenterX, CenterY))
     .children(|ui| {
-      if ui.is_just_pressed(id) && can_afford {
-        state.resource_pool.carbon -= cost_c;
-        state.resource_pool.water -= cost_w;
-        state.active_nodes.push(base);
-      }
+      let pressed = ui.is_pressed(id);
+      let mut is_investing = pressed;
 
-      // HACK: This is bad
-      if !can_afford {
-        ui.element().width(grow!()).height(grow!())
-          .floating(|f| f.attach_parent().z_index(10))
-          .background_color((0u8, 0u8, 0u8, 150u8)).empty();
+      if can_complete && pressed {
+        state.resource_pool -= cost;
+        state.active_nodes.push(base);
+
+        let button = state
+          .invest_button_data
+          .get_mut(button_index)
+          .expect("Missing tile investment button data");
+        button.fraction = 0.0;
+        is_investing = false;
       }
 
       // Image placeholder
@@ -183,6 +190,10 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType) {
           ui.text(&format_yield_short(&trade.yields_per_tick), |t| t.font_size(12).color(0xFFFFFF));
         });
 
+      ui.element().width(fixed!(124.0)).height(fixed!(8.0))
+        .image(render_investment_bar(124.0, 8.0, total_payable, fraction))
+        .empty();
+
       ui.element().width(grow!()).empty();
 
       // Cost info
@@ -193,16 +204,38 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType) {
           .gap(5)
         )
         .children(|ui| {
-          ui.text(&format!("-{}C", cost_c as i32), |t| {
-            let c = if state.resource_pool.carbon < cost_c { COLOR_RED } else { 0xAAAAAA };
+          ui.text(&format!("-{}C", cost.carbon as i32), |t| {
+            let c = if state.resource_pool.carbon < cost.carbon { COLOR_RED } else { 0xAAAAAA };
             t.font_size(11).color(c)
           });
-          ui.text(&format!("-{}H", cost_w as i32), |t| {
-            let c = if state.resource_pool.water < cost_w { COLOR_RED } else { 0xAAAAAA };
+          ui.text(&format!("-{}H", cost.water as i32), |t| {
+            let c = if state.resource_pool.water < cost.water { COLOR_RED } else { 0xAAAAAA };
             t.font_size(11).color(c)
           });
         });
+
+      let button = state
+        .invest_button_data
+        .get_mut(button_index)
+        .expect("Missing tile investment button data");
+      button.is_investing = is_investing;
     });
+}
+
+fn investment_status(resources: &Resources, cost: &Resources, fraction: f32) -> (f32, bool) {
+  let remainder = *cost * (1.0 - fraction);
+  let remainder_payable = resources.minimum_fraction_fulfilled(&remainder).0;
+  let total_payable = fraction + ((1.0 - fraction) * remainder_payable);
+
+  (total_payable, total_payable == 1.0)
+}
+
+fn render_investment_bar(width: f32, height: f32, total_payable: f32, invested_fraction: f32) -> Texture2D {
+  render_to_texture(width, height, || {
+    clear_background(BLACK);
+    draw_rectangle(0.0, 0.0, width * total_payable, height, GREEN);
+    draw_rectangle(0.0, 0.0, width * invested_fraction, height, YELLOW);
+  })
 }
 
 fn format_resources_short(r: &Resources) -> String {
@@ -257,13 +290,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState) {
             .font_size(12)
           );
           ui.element().width(grow!()).height(grow!())
-            .image(
-              render_to_texture(100.0, 1.0, || {
-                clear_background(BLACK);
-                draw_rectangle(0.0, 0.0, 100.0 * spore_total_payable, 1.0, GREEN);
-                draw_rectangle(0.0, 0.0, 100.0 * spore_data.fraction, 1.0, YELLOW);
-              })
-            )
+            .image(render_investment_bar(screen_width(), 1.0, spore_total_payable, spore_data.fraction))
             .empty();
         });
       
