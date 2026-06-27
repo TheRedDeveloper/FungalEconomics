@@ -58,7 +58,7 @@ fn render_dashboard(ui: &mut Ui, state: &mut GameState) {
       render_top_bar(ui, state);
 
       ui.element().width(grow!()).height(grow!(weight: 1.0))
-        .overflow(|o| o.scroll_y())
+        // .overflow(|o| o.scroll_y())
         .layout(|l| l.align(CenterX, CenterY).padding(20))
         .children(|ui| {
           render_grid(ui, state);
