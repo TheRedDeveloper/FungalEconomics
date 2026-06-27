@@ -115,7 +115,7 @@ fn render_grid(ui: &mut Ui, state: &mut GameState) {
 
   let cols = if screen_width() > screen_height() && available_bases.len() != 4 { 3 } else { 2 };
 
-  ui.element().contain(1.0)
+  ui.element().width(grow!()).height(grow!())
     .layout(|l| l.direction(TopToBottom).gap((15.0 * scaling_factor) as u16).align(CenterX, CenterY))
     .children(|ui| {
       for (row_index, row) in available_bases.chunks(cols as usize).enumerate() {
