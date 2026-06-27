@@ -2,6 +2,7 @@ use ply_engine::prelude::*;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, Div, BitOr, BitOrAssign};
 
 static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
+static TILE_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "tile.png", data: include_bytes!("../assets/images/tile.png") };
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Resources {
@@ -456,7 +457,7 @@ impl TileType {
 
   pub fn icon(&self) -> &'static GraphicAsset {
     match self {
-      _ => &TEST_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
+      _ => &TILE_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
     }
   }
 }
