@@ -165,7 +165,7 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
         just_pressed || (pressed && is_investing_current)
       };
 
-      ui.element().contain(13.0 / 15.0)
+      ui.element().contain(15.0/13.0)
         .image(tile.icon())
         .children(|ui| {
           ui.element().width(fixed!(75.0)).height(fixed!(16.0))
