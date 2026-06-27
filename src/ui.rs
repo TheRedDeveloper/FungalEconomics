@@ -119,7 +119,7 @@ fn render_grid(ui: &mut Ui, state: &mut GameState) {
     .layout(|l| l.direction(TopToBottom).gap((15.0 * scaling_factor) as u16).align(CenterX, CenterY))
     .children(|ui| {
       for (row_index, row) in available_bases.chunks(cols as usize).enumerate() {
-        ui.element().width(fit!()).height(fit!())
+        ui.element().width(grow!()).height(grow!())
           .layout(|l| l.gap((15.0 * scaling_factor) as u16))
           .children(|ui| {
             for (col_index, base) in row.iter().enumerate() {
