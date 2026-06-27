@@ -110,28 +110,28 @@ fn resource_label(ui: &mut Ui, label: &str, value: f32, is_missing: bool, color:
 }
 
 fn render_grid(ui: &mut Ui, state: &mut GameState) {
-  // TODO: Better adaptive scaling
+  let scaling_factor = 1.0; // TODO: This should be based on screen size
   let available_bases = BaseTileType::base_types_by_phase(state.current_phase);
 
-  let cols = if screen_width() > screen_height() { 3 } else { 2 };
+  let cols = if screen_width() > screen_height() && available_bases.len() != 4 { 3 } else { 2 };
 
-  ui.element().width(fit!()).height(fit!())
-    .layout(|l| l.direction(TopToBottom).gap(15).align(CenterX, CenterY))
+  ui.element().contain(1.0)
+    .layout(|l| l.direction(TopToBottom).gap((15.0 * scaling_factor) as u16).align(CenterX, CenterY))
     .children(|ui| {
       for (row_index, row) in available_bases.chunks(cols as usize).enumerate() {
         ui.element().width(fit!()).height(fit!())
-          .layout(|l| l.gap(15))
+          .layout(|l| l.gap((15.0 * scaling_factor) as u16))
           .children(|ui| {
             for (col_index, base) in row.iter().enumerate() {
               let button_index = row_index * cols as usize + col_index;
-              render_tile_button(ui, state, *base, button_index);
+              render_tile_button(ui, state, *base, button_index, scaling_factor);
             }
           });
       }
     });
 }
 
-fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, button_index: usize) {
+fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, button_index: usize, scaling_factor: f32) {
   let (amount, fraction, is_investing_current) = {
     let button = state
       .invest_button_data
@@ -149,12 +149,12 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
   let trade = tile.get_trade();
   let id = Id::new_index("tile_btn", base as u32);
 
-  ui.element().width(fixed!(140.0)).height(fixed!(180.0))
+  ui.element().width(grow!()).height(grow!())
     .id(id.clone())
     .background_color(COLOR_CARD_BG)
     .corner_radius(8.0)
     .border(|b| b.all(1).color(0x333333))
-    .layout(|l| l.direction(TopToBottom).padding(8).gap(5).align(CenterX, CenterY))
+    .layout(|l| l.direction(TopToBottom).align(CenterX, CenterY))
     .children(|ui| {
       let pressed = ui.is_pressed(id.clone());
       let just_pressed = ui.is_just_pressed(id);
@@ -168,29 +168,29 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
         just_pressed || (pressed && is_investing_current)
       };
 
-      ui.element().width(fixed!(64.0)).height(fixed!(64.0))
+      ui.element().contain(1.0)
         .image(tile.icon()).empty();
 
-      ui.text(tile.label(), |t| t.font_size(14).color(0xFFFFFF));
+      // ui.text(tile.label(), |t| t.font_size(14).color(0xFFFFFF));
 
-      // Yield/Trade info
-      ui.element().width(grow!()).height(fit!())
-        .layout(|l| l.direction(TopToBottom).align(CenterX, CenterY))
-        .children(|ui| {
-          if let Some(c) = trade.consumes_per_tick {
-            ui.element().width(grow!())
-              .layout(|l| l
-                .direction(LeftToRight)
-                .align(CenterX, CenterY)
-                .gap(5)
-              )
-              .children(|ui| {
-                ui.text(&format_resources_short(&c), |t| t.font_size(12).color(0xFFFFFF));
-                ui.text("->", |t| t.font_size(12).color(0xFFFFFF));
-              });
-          }
-          ui.text(&format_yield_short(&trade.yields_per_tick), |t| t.font_size(12).color(0xFFFFFF));
-        });
+      // // Yield/Trade info
+      // ui.element().width(grow!()).height(fit!())
+      //   .layout(|l| l.direction(TopToBottom).align(CenterX, CenterY))
+      //   .children(|ui| {
+      //     if let Some(c) = trade.consumes_per_tick {
+      //       ui.element().width(grow!())
+      //         .layout(|l| l
+      //           .direction(LeftToRight)
+      //           .align(CenterX, CenterY)
+      //           .gap(5)
+      //         )
+      //         .children(|ui| {
+      //           ui.text(&format_resources_short(&c), |t| t.font_size(12).color(0xFFFFFF));
+      //           ui.text("->", |t| t.font_size(12).color(0xFFFFFF));
+      //         });
+      //     }
+      //     ui.text(&format_yield_short(&trade.yields_per_tick), |t| t.font_size(12).color(0xFFFFFF));
+      //   });
 
       ui.element().width(fixed!(75.0)).height(fixed!(16.0))
         .image(render_investment_bar(75.0, total_payable, fraction))
