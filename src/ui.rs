@@ -169,7 +169,18 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
       };
 
       ui.element().contain(1.0)
-        .image(tile.icon()).empty();
+        .image(tile.icon())
+        .children(|ui| {
+          ui.element().width(fixed!(75.0)).height(fixed!(16.0))
+            .image(render_investment_bar(75.0, total_payable, fraction))
+            .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)))
+            .corner_radius(10.0)
+            .layout(|l| l.align(CenterX, CenterY))
+            .border(|b| b.all(1).color(if can_afford { 0x016128 } else { 0xB01B2E }).position(Middle))
+            .children(|ui| {
+              ui.text(&format!("-{}C -{}H", amount.carbon as i32, amount.water as i32), |t| t.font_size(11).color(WHITE));
+            });
+        });
 
       // ui.text(tile.label(), |t| t.font_size(14).color(0xFFFFFF));
 
@@ -192,15 +203,7 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
       //     ui.text(&format_yield_short(&trade.yields_per_tick), |t| t.font_size(12).color(0xFFFFFF));
       //   });
 
-      ui.element().width(fixed!(75.0)).height(fixed!(16.0))
-        .image(render_investment_bar(75.0, total_payable, fraction))
-        .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)))
-        .corner_radius(10.0)
-        .layout(|l| l.align(CenterX, CenterY))
-        .border(|b| b.all(1).color(if can_afford { 0x016128 } else { 0xB01B2E }).position(Middle))
-        .children(|ui| {
-          ui.text(&format!("-{}C -{}H", amount.carbon as i32, amount.water as i32), |t| t.font_size(11).color(WHITE));
-        });
+
 
       let button = state
         .invest_button_data
