@@ -151,9 +151,6 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
 
   ui.element().width(grow!()).height(grow!())
     .id(id.clone())
-    .background_color(COLOR_CARD_BG)
-    .corner_radius(8.0)
-    .border(|b| b.all(1).color(0x333333))
     .layout(|l| l.direction(TopToBottom).align(CenterX, CenterY))
     .children(|ui| {
       let pressed = ui.is_pressed(id.clone());
