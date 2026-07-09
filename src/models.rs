@@ -1,7 +1,6 @@
 use ply_engine::prelude::*;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, Div, BitOr, BitOrAssign};
 
-static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
 static TILE_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "tile.png", data: include_bytes!("../assets/images/tile.png") };
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -184,17 +183,25 @@ pub struct ButtonData {
 }
 
 #[derive(Clone, Debug)]
+pub enum Change {
+  Overtake(BaseTileType),
+  Add(BaseTileType),
+  Spore
+}
+
+#[derive(Clone, Debug)]
 pub struct GameState {
   pub is_paused: bool,
   pub current_phase: u8, // 1 to 5
   pub phase_timer: f32,
   pub resource_pool: Resources,
   pub is_resource_missing: IsResourceMissing,
-  pub is_overstacked_menu_opened: bool,
+  pub overstacked_menu: Option<Option<BaseTileType>>,
   pub active_nodes: Vec<BaseTileType>,
   pub spore_points: u32,
   pub invest_button_data: Vec<ButtonData>, // last is always "spore" button, rest are for node buying
   pub income_per_tick: Resources,
+  pub change_log: Vec<Change>,
 }
 impl GameState {
   pub fn new() -> Self {
@@ -204,11 +211,12 @@ impl GameState {
       phase_timer: PHASE_LENGTH,
       resource_pool: Resources::new(START_CARBON, START_NITROGEN, START_PHOSPHORUS, START_WATER),
       is_resource_missing: IsResourceMissing::default(),
-      is_overstacked_menu_opened: false,
+      overstacked_menu: None,
       active_nodes: vec![BaseTileType::Puddle], // Free starting token
       spore_points: 0,
       invest_button_data: vec![],
       income_per_tick: BASE_INCOME,
+      change_log: vec![],
     };
     new.reset_button_data();
     new
@@ -235,6 +243,34 @@ impl GameState {
       amount: SPORE_POINT_COSTS,
       fraction: 0.0,
     });
+  }
+
+  pub fn undo_last_change(&mut self) {
+    if let Some(change) = self.change_log.pop() {
+      match change {
+        Change::Overtake(base) => {
+          self.active_nodes.push(base);
+        }
+        Change::Add(base) => {
+          if let Some(pos) = self.active_nodes.iter().position(|&b| b == base) {
+            self.active_nodes.remove(pos);
+            let tile = base.get_current_tile_type(self.current_phase);
+            self.resource_pool.carbon += tile.expansion_carbon_cost();
+            self.resource_pool.water += tile.water_cost();
+          } else {
+            eprintln!("Warning: Tried to undo Add for base {:?}, but it was not found in active_nodes.", base);
+          }
+        }
+        Change::Spore => {
+          if self.spore_points > 0 {
+            self.spore_points -= 1;
+            self.resource_pool += SPORE_POINT_COSTS;
+          } else {
+            eprintln!("Warning: Tried to undo Spore change, but spore_points is already 0.");
+          }
+        }
+      }
+    }
   }
 }
 
@@ -337,7 +373,7 @@ impl TileType {
   }
 
   pub fn expansion_carbon_cost(&self) -> f32 {
-    100.0
+    200.0
   }
 
   pub fn get_trade(&self) -> Trade {
@@ -426,32 +462,6 @@ impl TileType {
         consumes_per_tick: None,
         yields_per_tick: Resources::new(5.0, 20.0, 20.0, 8.0),
       },
-    }
-  }
-
-  pub fn label(&self) -> &'static str {
-    match self {
-      TileType::Ash => "Ash",
-      TileType::CharredFallenLog => "Charred Log",
-      TileType::CharredTreeTrunk => "Charred Trunk",
-      TileType::CharredGrass => "Charred Grass",
-      TileType::Puddle => "Puddle",
-      TileType::DryDirt => "Dry Dirt",
-      TileType::Dirt => "Dirt",
-      TileType::Grass => "Grass",
-      TileType::Shrub => "Shrub",
-      TileType::Flowers => "Flowers",
-      TileType::Saplings => "Saplings",
-      TileType::Moss => "Moss",
-      TileType::Clover => "Clover",
-      TileType::BerryBush => "Berry Bush",
-      TileType::Ferns => "Ferns",
-      TileType::Birch => "Birch",
-      TileType::Pine => "Pine",
-      TileType::Oak => "Oak",
-      TileType::GreenPuddle => "Green Puddle",
-      TileType::CoarseDirt => "Coarse Dirt",
-      TileType::LeafLitter => "Leaf Litter",
     }
   }
 
