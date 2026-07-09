@@ -70,7 +70,7 @@ fn render_dashboard(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
     });
 }
 
-fn render_top_bar(ui: &mut Ui, state: &GameState, scaling_factor: f32) {
+fn render_top_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
   ui.element().width(grow!()).height(fit!())
     .background_color(0x000000)
     .layout(|l| l.direction(TopToBottom).padding(10).gap(5))
@@ -78,11 +78,21 @@ fn render_top_bar(ui: &mut Ui, state: &GameState, scaling_factor: f32) {
       // Title and Timer
       ui.element().width(grow!()).height(fit!())
         .children(|ui| {
-          ui.text(&format!("PHASE {}", state.current_phase), |t| t.font_size((18.0 * scaling_factor) as u16).color(0xFFFFFF));
-          ui.element().width(grow!()).empty();
           let mins = (state.phase_timer as i32) / 60;
           let secs = (state.phase_timer as i32) % 60;
-          ui.text(&format!("{:02}:{:02}", mins, secs), |t| t.font_size((18.0 * scaling_factor) as u16).color(0xFFFFFF));
+          ui.text(&format!("PHASE {} • {:02}:{:02}", state.current_phase, mins, secs), |t| t.font_size((18.0 * scaling_factor) as u16).color(0xFFFFFF));
+          ui.element().width(grow!()).empty();
+          if !state.change_log.is_empty() {
+            ui.element().id("undo_btn")
+              .background_color(0x333333)
+              .children(|ui| {
+                let height = 18.0 * scaling_factor;
+                ui.element().width(fixed!(height)).height(fixed!(height)).image(&UNDO_IMAGE).empty();
+                ui.text(&format!("{}", state.change_log.last().unwrap().label()), |t| t.font_size((18.0 * scaling_factor) as u16).color(0xFFFFFF));
+              });
+            
+            if ui.is_just_pressed("undo_btn") { state.undo_last_change(); }
+          }
         });
 
       // Resources
