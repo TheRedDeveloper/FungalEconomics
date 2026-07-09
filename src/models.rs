@@ -2,7 +2,7 @@ use ply_engine::prelude::*;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, Div, BitOr, BitOrAssign};
 
 static TILE_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "tile.png", data: include_bytes!("../assets/images/tile.png") };
-pub static UNDO_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
+pub static UNDO_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "undo.png", data: include_bytes!("../assets/images/undo.png") };
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Resources {

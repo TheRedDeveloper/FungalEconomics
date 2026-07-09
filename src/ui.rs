@@ -8,8 +8,6 @@ pub const COLOR_WATER: u32 = 0x2196F3; // Blue
 pub const COLOR_RED: u32 = 0xF44336;
 pub const COLOR_BG: u32 = 0x121212;
 
-// TODO: UNDO BUTTON
-
 pub fn render_ui(ui: &mut Ui, mode: &mut GameMode) {
   let scaling_factor = ((screen_width() / 1080.0).min(screen_height() / 1920.0) * 3.0).max(0.5);
 
