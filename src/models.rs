@@ -6,6 +6,51 @@ pub static UNDO_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "undo.png
 pub static STACK_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "stack.png", data: include_bytes!("../assets/images/stack.png") };
 pub static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
 
+// Tiles
+static ASH_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "AshWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Ash.png") };
+static CHARREDFALLENLOG_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CharredFallenLogWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/CharredFallenLog.png") };
+static CHARREDTREETRUNK_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CharredTreeTrunkWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/CharredTreeTrunk.png") };
+static CHARREDGRASS_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CharredGrassWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/CharredGrass.png") };
+static PUDDLE_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "PuddleWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Puddle.png") };
+static DRYDIRT_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "DryDirtWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/DryDirt.png") };
+static DIRT_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "DirtWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Dirt.png") };
+static GRASS_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "GrassWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Grass.png") };
+static SHRUB_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "ShrubWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Shrub.png") };
+static FLOWERS_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "FlowersWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Flowers.png") };
+static SAPLINGS_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "SaplingsWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Saplings.png") };
+static MOSS_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "MossWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Moss.png") };
+static CLOVER_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CloverWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Clover.png") };
+static BERRYBUSH_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "BerryBushWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/BerryBush.png") };
+static FERNS_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "FernsWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Ferns.png") };
+static BIRCH_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "BirchWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Birch.png") };
+static PINE_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "PineWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Pine.png") };
+static OAK_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "OakWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Oak.png") };
+static GREENPUDDLE_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "GreenPuddleWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/GreenPuddle.png") };
+static COARSEDIRT_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CoarseDirtWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/CoarseDirt.png") };
+static LEAFLITTER_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "LeafLitterWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/LeafLitter.png") };
+
+static ASH_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "AshWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Ash.png") };
+static CHARREDFALLENLOG_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CharredFallenLogWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/CharredFallenLog.png") };
+static CHARREDTREETRUNK_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CharredTreeTrunkWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/CharredTreeTrunk.png") };
+static CHARREDGRASS_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CharredGrassWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/CharredGrass.png") };
+static PUDDLE_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "PuddleWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Puddle.png") };
+static DRYDIRT_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "DryDirtWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/DryDirt.png") };
+static DIRT_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "DirtWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Dirt.png") };
+static GRASS_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "GrassWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Grass.png") };
+static SHRUB_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "ShrubWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Shrub.png") };
+static FLOWERS_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "FlowersWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Flowers.png") };
+static SAPLINGS_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "SaplingsWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Saplings.png") };
+static MOSS_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "MossWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Moss.png") };
+static CLOVER_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CloverWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Clover.png") };
+static BERRYBUSH_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "BerryBushWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/BerryBush.png") };
+static FERNS_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "FernsWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Ferns.png") };
+static BIRCH_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "BirchWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Birch.png") };
+static PINE_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "PineWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Pine.png") };
+static OAK_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "OakWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/Oak.png") };
+static GREENPUDDLE_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "GreenPuddleWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/GreenPuddle.png") };
+static COARSEDIRT_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "CoarseDirtWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/CoarseDirt.png") };
+static LEAFLITTER_TILE_WITHOUT_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "LeafLitterWithoutYield.png", data: include_bytes!("../assets/images/tiles/withoutYield/LeafLitter.png") };
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Resources {
   pub carbon: f32,
@@ -488,13 +533,53 @@ impl TileType {
 
   pub fn graphic_with_yield(&self) -> &'static GraphicAsset {
     match self {
-      _ => &TILE_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
+      TileType::Ash => &ASH_TILE_WITH_YIELD,
+      TileType::CharredFallenLog => &CHARREDFALLENLOG_TILE_WITH_YIELD,
+      TileType::CharredTreeTrunk => &CHARREDTREETRUNK_TILE_WITH_YIELD,
+      TileType::CharredGrass => &CHARREDGRASS_TILE_WITH_YIELD,
+      TileType::Puddle => &PUDDLE_TILE_WITH_YIELD,
+      TileType::DryDirt => &DRYDIRT_TILE_WITH_YIELD,
+      TileType::Dirt => &DIRT_TILE_WITH_YIELD,
+      TileType::Grass => &GRASS_TILE_WITH_YIELD,
+      TileType::Shrub => &SHRUB_TILE_WITH_YIELD,
+      TileType::Flowers => &FLOWERS_TILE_WITH_YIELD,
+      TileType::Saplings => &SAPLINGS_TILE_WITH_YIELD,
+      TileType::Moss => &MOSS_TILE_WITH_YIELD,
+      TileType::Clover => &CLOVER_TILE_WITH_YIELD,
+      TileType::BerryBush => &BERRYBUSH_TILE_WITH_YIELD,
+      TileType::Ferns => &FERNS_TILE_WITH_YIELD,
+      TileType::Birch => &BIRCH_TILE_WITH_YIELD,
+      TileType::Pine => &PINE_TILE_WITH_YIELD,
+      TileType::Oak => &OAK_TILE_WITH_YIELD,
+      TileType::GreenPuddle => &GREENPUDDLE_TILE_WITH_YIELD,
+      TileType::CoarseDirt => &COARSEDIRT_TILE_WITH_YIELD,
+      TileType::LeafLitter => &LEAFLITTER_TILE_WITH_YIELD,
     }
   }
 
   pub fn graphic_without_yield(&self) -> &'static GraphicAsset {
     match self {
-      _ => &TEST_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
+      TileType::Ash => &ASH_TILE_WITHOUT_YIELD,
+      TileType::CharredFallenLog => &CHARREDFALLENLOG_TILE_WITHOUT_YIELD,
+      TileType::CharredTreeTrunk => &CHARREDTREETRUNK_TILE_WITHOUT_YIELD,
+      TileType::CharredGrass => &CHARREDGRASS_TILE_WITHOUT_YIELD,
+      TileType::Puddle => &PUDDLE_TILE_WITHOUT_YIELD,
+      TileType::DryDirt => &DRYDIRT_TILE_WITHOUT_YIELD,
+      TileType::Dirt => &DIRT_TILE_WITHOUT_YIELD,
+      TileType::Grass => &GRASS_TILE_WITHOUT_YIELD,
+      TileType::Shrub => &SHRUB_TILE_WITHOUT_YIELD,
+      TileType::Flowers => &FLOWERS_TILE_WITHOUT_YIELD,
+      TileType::Saplings => &SAPLINGS_TILE_WITHOUT_YIELD,
+      TileType::Moss => &MOSS_TILE_WITHOUT_YIELD,
+      TileType::Clover => &CLOVER_TILE_WITHOUT_YIELD,
+      TileType::BerryBush => &BERRYBUSH_TILE_WITHOUT_YIELD,
+      TileType::Ferns => &FERNS_TILE_WITHOUT_YIELD,
+      TileType::Birch => &BIRCH_TILE_WITHOUT_YIELD,
+      TileType::Pine => &PINE_TILE_WITHOUT_YIELD,
+      TileType::Oak => &OAK_TILE_WITHOUT_YIELD,
+      TileType::GreenPuddle => &GREENPUDDLE_TILE_WITHOUT_YIELD,
+      TileType::CoarseDirt => &COARSEDIRT_TILE_WITHOUT_YIELD,
+      TileType::LeafLitter => &LEAFLITTER_TILE_WITHOUT_YIELD,
     }
   }
 }

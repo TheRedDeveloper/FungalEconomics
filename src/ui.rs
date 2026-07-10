@@ -190,14 +190,14 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
       } else {
         tile.graphic_with_yield()
       };
-      ui.element().contain(15.0/13.0)
+      ui.element().contain(13.0/15.0)
         .image(graphic)
         .background_color(if stacking_but_not_featured { 0x555555 } else { 0xFFFFFF })
         .id(id)
         .children(|ui| {
           ui.element().width(fixed!(75.0 * scaling_factor)).height(fixed!(16.0 * scaling_factor))
             .image(render_investment_bar(75.0 * scaling_factor, total_payable, fraction))
-            .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)))
+            .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)).offset((0.0, -50.0*scaling_factor)))
             .corner_radius(10.0 * scaling_factor)
             .layout(|l| l.align(CenterX, CenterY))
             .border(|b| b.all((1.0 * scaling_factor).min(1.0) as u16).color(if can_afford { 0x016128 } else { 0xB01B2E }).position(Middle))
@@ -349,7 +349,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
 
                       let bg = if is_availiable { 0xFFFFFF } else { 0x555555 }; 
 
-                      ui.element().contain(15.0/13.0)
+                      ui.element().contain(13.0/15.0)
                         .id(id.clone())
                         .corner_radius(10.0 * scaling_factor)
                         .background_color(bg)
