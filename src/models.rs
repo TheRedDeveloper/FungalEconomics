@@ -1,8 +1,10 @@
 use ply_engine::prelude::*;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, Div, BitOr, BitOrAssign};
 
-static TILE_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "tile.png", data: include_bytes!("../assets/images/tile.png") };
+pub static TILE_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "tile.png", data: include_bytes!("../assets/images/tile.png") };
 pub static UNDO_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "undo.png", data: include_bytes!("../assets/images/undo.png") };
+pub static STACK_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "stack.png", data: include_bytes!("../assets/images/stack.png") };
+pub static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Resources {
@@ -187,7 +189,8 @@ pub struct ButtonData {
 pub enum Change {
   Overtake(BaseTileType),
   Add(BaseTileType),
-  Spore
+  Spore,
+  Stack(BaseTileType),
 }
 impl Change {
   pub fn label(&self) -> String {
@@ -195,6 +198,7 @@ impl Change {
       Change::Overtake(_) => "OVERTAKE".to_string(),
       Change::Add(_) => "BUY".to_string(),
       Change::Spore => "SPORE".to_string(),
+      Change::Stack(_) => "STACK".to_string(),
     }
   }
 }
@@ -212,6 +216,7 @@ pub struct GameState {
   pub invest_button_data: Vec<ButtonData>, // last is always "spore" button, rest are for node buying
   pub income_per_tick: Resources,
   pub change_log: Vec<Change>,
+  pub stack_mode: bool,
 }
 impl GameState {
   pub fn new() -> Self {
@@ -227,6 +232,7 @@ impl GameState {
       invest_button_data: vec![],
       income_per_tick: BASE_INCOME,
       change_log: vec![],
+      stack_mode: false,
     };
     new.reset_button_data();
     new
@@ -278,6 +284,11 @@ impl GameState {
           } else {
             eprintln!("Warning: Tried to undo Spore change, but spore_points is already 0.");
           }
+        }
+        Change::Stack(base) => {
+          let tile = base.get_current_tile_type(self.current_phase);
+          self.resource_pool.carbon += tile.expansion_carbon_cost();
+          self.resource_pool.water += tile.water_cost();
         }
       }
     }
@@ -475,9 +486,15 @@ impl TileType {
     }
   }
 
-  pub fn icon(&self) -> &'static GraphicAsset {
+  pub fn graphic_with_yield(&self) -> &'static GraphicAsset {
     match self {
       _ => &TILE_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
+    }
+  }
+
+  pub fn graphic_without_yield(&self) -> &'static GraphicAsset {
+    match self {
+      _ => &TEST_IMAGE, // TODO: Replace with actual icons for each tile type when icons are available
     }
   }
 }

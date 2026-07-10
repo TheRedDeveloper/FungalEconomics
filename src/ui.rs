@@ -163,19 +163,36 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
     .children(|ui| {
       let pressed = ui.is_pressed(id.clone());
       let just_pressed = ui.is_just_pressed(id.clone());
-      let is_investing = if can_afford && ((pressed && is_investing_current) || just_pressed) {
+      let stacking_but_not_featured = state.stack_mode && !state.active_nodes.contains(&base);
+      let is_investing = if stacking_but_not_featured {
+        false
+      } else if
+        can_afford &&
+        ((pressed && is_investing_current) || just_pressed)
+      {
         state.resource_pool -= remainder;
-        state.active_nodes.push(base);
-        state.change_log.push(Change::Add(base));
         let button = state.invest_button_data.get_mut(button_index).unwrap();
         button.fraction = 0.0;
+        if state.stack_mode {
+          state.change_log.push(Change::Stack(base));
+          state.stack_mode = false;
+        } else {
+          state.active_nodes.push(base);
+          state.change_log.push(Change::Add(base));
+        }
         false
       } else {
         just_pressed || (pressed && is_investing_current)
       };
 
+      let graphic = if state.stack_mode {
+        tile.graphic_without_yield()
+      } else {
+        tile.graphic_with_yield()
+      };
       ui.element().contain(15.0/13.0)
-        .image(tile.icon())
+        .image(graphic)
+        .background_color(if stacking_but_not_featured { 0x555555 } else { 0xFFFFFF })
         .id(id)
         .children(|ui| {
           ui.element().width(fixed!(75.0 * scaling_factor)).height(fixed!(16.0 * scaling_factor))
@@ -217,7 +234,7 @@ fn format_resources_short(r: &Resources) -> String {
 fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
   ui.element().width(grow!()).height(fit!())
     .background_color(0x000000)
-    .layout(|l| l.gap(10).padding((10.0 * scaling_factor) as u16))
+    .layout(|l| l.gap((10.0 * scaling_factor) as u16).padding((10.0 * scaling_factor) as u16))
     .children(|ui| {
       // Outstack button
       let out_id = ui.element().width(grow!()).height(fixed!(50.0 * scaling_factor))
@@ -231,6 +248,22 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
         state.overstacked_menu = Some(None);
       }
 
+      // Stack-mode button
+      let bg = if state.stack_mode { COLOR_RED } else { 0x333333 };
+      let stack_id = ui.element().width(fixed!(50.0 * scaling_factor)).height(fixed!(50.0 * scaling_factor))
+        .background_color(bg)
+        .corner_radius(10.0 * scaling_factor)
+        .layout(|l| l.align(CenterX, CenterY).padding((10.0 * scaling_factor) as u16))
+        .children(|ui| {
+          ui.element().width(grow!()).height(grow!())
+            .image(&STACK_IMAGE)
+            .empty();
+        });
+      if ui.is_just_pressed(stack_id) {
+        state.stack_mode = !state.stack_mode;
+      }
+
+      // Spore button
       let spore_data = state.invest_button_data.last_mut().expect("Where did the button data go????");
       let spore_remainder = SPORE_POINT_COSTS * (1.0 - spore_data.fraction);
       let spore_remainder_payable = state.resource_pool.minimum_fraction_fulfilled(&spore_remainder).0;
@@ -244,7 +277,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
         .layout(|l| l.align(CenterX, CenterY))
         .children(|ui| {
           ui.text("SPORE", |t| t.color(WHITE).font_size((16.0 * scaling_factor) as u16));
-          ui.element().width(fixed!(screen_width()*0.4)).height(fixed!(16.0 * scaling_factor))
+          ui.element().width(fixed!(screen_width()*0.3)).height(fixed!(16.0 * scaling_factor))
             .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)))
             .image(render_investment_bar(screen_width(), spore_total_payable, spore_data.fraction))
             .corner_radius(10.0 * scaling_factor)
@@ -253,7 +286,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
             .children(|ui| {
               ui.text(&format_resources_short(&SPORE_POINT_COSTS), |t| t
                 .color(WHITE)
-                .font_size((12.0 * scaling_factor) as u16)
+                .font_size((10.0 * scaling_factor) as u16)
               );
             });
         });
@@ -320,7 +353,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
                         .id(id.clone())
                         .corner_radius(10.0 * scaling_factor)
                         .background_color(bg)
-                        .image(tile.icon())
+                        .image(tile.graphic_with_yield())
                         .empty();
 
                       // HACK: Draw a selection window
