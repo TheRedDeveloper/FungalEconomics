@@ -16,7 +16,7 @@ pub fn render_ui(ui: &mut Ui, mode: &mut GameMode) {
     .children(|ui| {
       match mode {
         GameMode::StartSync { hold_accumulation } => {
-          render_sync_screen(ui, "HOLD TO START SYNC", *hold_accumulation, scaling_factor);
+          render_sync_screen(ui, "ZUM SYNCHRONISIEREN HALTEN", *hold_accumulation, scaling_factor);
         }
         GameMode::Playing { state } => {
           render_dashboard(ui, state, scaling_factor);
@@ -24,8 +24,8 @@ pub fn render_ui(ui: &mut Ui, mode: &mut GameMode) {
             render_outstack_overlay(ui, state, scaling_factor);
           }
         }
-        GameMode::TransitionSync { state: _, hold_accumulator } => {
-          render_sync_screen(ui, "PHASE TRANSITION: HOLD TO SYNC", *hold_accumulator, scaling_factor);
+        GameMode::TransitionSync { state, hold_accumulator } => {
+          render_sync_screen(ui, &format!("PHASE {}: ZUM SYNCHRONISIEREN HALTEN", state.current_phase), *hold_accumulator, scaling_factor);
         }
         GameMode::GameOver { state } => {
           render_game_over(ui, state, scaling_factor);
@@ -48,7 +48,7 @@ fn render_sync_screen(ui: &mut Ui, message: &str, progress: f32, scaling_factor:
             .background_color(COLOR_WATER).empty();
         });
 
-      ui.text("All players must hold simultaneously", |t| t.font_size((14.0 * scaling_factor) as u16).color(0xAAAAAA));
+      ui.text("Alle Spieler müssen gleichzeitig halten", |t| t.font_size((14.0 * scaling_factor) as u16).color(0xAAAAAA));
     });
 }
 
@@ -242,7 +242,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
         .corner_radius(4.0 * scaling_factor)
         .layout(|l| l.align(CenterX, CenterY))
         .children(|ui| {
-          ui.text("OUTSTACKED", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
+          ui.text("ÜBERSTAPELN", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
         });
       if ui.is_just_pressed(out_id) {
         state.overstacked_menu = Some(None);
@@ -276,7 +276,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
         .corner_radius(4.0 * scaling_factor)
         .layout(|l| l.align(CenterX, CenterY))
         .children(|ui| {
-          ui.text("SPORE", |t| t.color(WHITE).font_size((16.0 * scaling_factor) as u16));
+          ui.text("SPOREN", |t| t.color(WHITE).font_size((16.0 * scaling_factor) as u16));
           ui.element().width(fixed!(screen_width()*0.3)).height(fixed!(16.0 * scaling_factor))
             .floating(|f| f.attach_parent().anchor((CenterX, CenterY), (CenterX, Bottom)))
             .image(render_investment_bar(screen_width(), spore_total_payable, spore_data.fraction))
@@ -322,7 +322,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
         .corner_radius(12.0 * scaling_factor)
         .layout(|l| l.direction(TopToBottom).gap((16.0 * scaling_factor) as u16).padding((18.0 * scaling_factor) as u16))
         .children(|ui| {
-          ui.text("SELECT TILE TO OVERTAKE", |t| t.font_size((22.0 * scaling_factor) as u16).color(0xFFFFFF));
+          ui.text("FELD ZUM ÜBERNEHMEN AUSWÄHLEN", |t| t.font_size((22.0 * scaling_factor) as u16).color(0xFFFFFF));
 
           ui.element().width(grow!()).height(grow!())
             .layout(|l| l.direction(TopToBottom).gap((15.0 * scaling_factor) as u16).align(CenterX, CenterY))
@@ -384,7 +384,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
                 .corner_radius(6.0 * scaling_factor)
                 .layout(|l| l.align(CenterX, CenterY))
                 .children(|ui| {
-                  ui.text("OVERTAKE", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
+                  ui.text("ÜBERNEHMEN", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
                 });
 
               if is_selected && ui.is_just_pressed(remove_id) {
@@ -401,7 +401,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
                 .corner_radius(6.0 * scaling_factor)
                 .layout(|l| l.align(CenterX, CenterY))
                 .children(|ui| {
-                  ui.text("CANCEL", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
+                  ui.text("ABBRECHEN", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
                 });
 
               if ui.is_just_pressed(cancel_id) {
@@ -416,17 +416,17 @@ fn render_game_over(ui: &mut Ui, state: &GameState, scaling_factor: f32) {
   ui.element().width(grow!()).height(grow!())
     .layout(|l| l.align(CenterX, CenterY).direction(TopToBottom).gap((30.0 * scaling_factor) as u16))
     .children(|ui| {
-      ui.text("GAME OVER", |t| t.font_size((48.0 * scaling_factor) as u16).color(COLOR_PHOSPHORUS));
-      ui.text(&format!("FINAL SCORE: {} SPORE POINTS", state.spore_points), |t| t.font_size((24.0 * scaling_factor) as u16).color(0xFFFFFF));
+      ui.text("SPIEL VORBEI", |t| t.font_size((48.0 * scaling_factor) as u16).color(COLOR_PHOSPHORUS));
+      ui.text(&format!("ENDSTAND: {} SPORENPUNKTE", state.spore_points), |t| t.font_size((24.0 * scaling_factor) as u16).color(0xFFFFFF));
       
       ui.element().width(fit!()).height(fit!())
         .layout(|l| l.direction(TopToBottom).gap(10).align(CenterX, CenterY))
         .children(|ui| {
-          ui.text("FINAL RESOURCES:", |t| t.color(0xAAAAAA).font_size((16.0 * scaling_factor) as u16));
-          ui.text(&format!("{} Carbon", state.resource_pool.carbon as i32), |t| t.color(COLOR_CARBON).font_size((14.0 * scaling_factor) as u16));
-          ui.text(&format!("{} Nitrogen", state.resource_pool.nitrogen as i32), |t| t.color(COLOR_NITROGEN).font_size((14.0 * scaling_factor) as u16));
-          ui.text(&format!("{} Phosphorus", state.resource_pool.phosphorus as i32), |t| t.color(COLOR_PHOSPHORUS).font_size((14.0 * scaling_factor) as u16));
-          ui.text(&format!("{} Water", state.resource_pool.water as i32), |t| t.color(COLOR_WATER).font_size((14.0 * scaling_factor) as u16));
+          ui.text("ENDRESSOURCEN:", |t| t.color(0xAAAAAA).font_size((16.0 * scaling_factor) as u16));
+          ui.text(&format!("{} Kohlenstoff", state.resource_pool.carbon as i32), |t| t.color(COLOR_CARBON).font_size((14.0 * scaling_factor) as u16));
+          ui.text(&format!("{} Stickstoff", state.resource_pool.nitrogen as i32), |t| t.color(COLOR_NITROGEN).font_size((14.0 * scaling_factor) as u16));
+          ui.text(&format!("{} Phosphor", state.resource_pool.phosphorus as i32), |t| t.color(COLOR_PHOSPHORUS).font_size((14.0 * scaling_factor) as u16));
+          ui.text(&format!("{} Wasser", state.resource_pool.water as i32), |t| t.color(COLOR_WATER).font_size((14.0 * scaling_factor) as u16));
         });
     });
 }

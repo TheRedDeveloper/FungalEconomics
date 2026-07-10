@@ -240,10 +240,10 @@ pub enum Change {
 impl Change {
   pub fn label(&self) -> String {
     match self {
-      Change::Overtake(_) => "OVERTAKE".to_string(),
-      Change::Add(_) => "BUY".to_string(),
-      Change::Spore => "SPORE".to_string(),
-      Change::Stack(_) => "STACK".to_string(),
+      Change::Overtake(_) => "ÜBERNEHMEN".to_string(),
+      Change::Add(_) => "KAUFEN".to_string(),
+      Change::Spore => "SPOREN".to_string(),
+      Change::Stack(_) => "STAPELN".to_string(),
     }
   }
 }
