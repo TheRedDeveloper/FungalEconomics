@@ -100,7 +100,7 @@ fn render_top_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
           resource_label(ui, "C", state.resource_pool.carbon, state.is_resource_missing.carbon && state.resource_pool.carbon < 0.5, COLOR_CARBON, (state.income_per_tick.carbon / 1000.0).min(1.0), scaling_factor);
           resource_label(ui, "N", state.resource_pool.nitrogen, state.is_resource_missing.nitrogen && state.resource_pool.nitrogen < 0.5, COLOR_NITROGEN, (state.income_per_tick.nitrogen / 100.0).min(1.0), scaling_factor);
           resource_label(ui, "P", state.resource_pool.phosphorus, state.is_resource_missing.phosphorus && state.resource_pool.phosphorus < 0.5, COLOR_PHOSPHORUS, (state.income_per_tick.phosphorus / 100.0).min(1.0), scaling_factor);
-          resource_label(ui, "H2O", state.resource_pool.water, state.is_resource_missing.water && state.resource_pool.water < 0.5, COLOR_WATER, (state.income_per_tick.water / 100.0).min(1.0), scaling_factor);
+          resource_label(ui, "H₂O", state.resource_pool.water, state.is_resource_missing.water && state.resource_pool.water < 0.5, COLOR_WATER, (state.income_per_tick.water / 100.0).min(1.0), scaling_factor);
 
           ui.element().width(grow!()).empty();
           ui.text(&format!("{} SP", state.spore_points), |t| t.font_size((18.0 * scaling_factor) as u16).color(0xFFFFFF));
