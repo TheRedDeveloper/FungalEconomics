@@ -1,10 +1,8 @@
 use ply_engine::prelude::*;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, Div, BitOr, BitOrAssign};
 
-pub static TILE_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "tile.png", data: include_bytes!("../assets/images/tile.png") };
 pub static UNDO_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "undo.png", data: include_bytes!("../assets/images/undo.png") };
 pub static STACK_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "stack.png", data: include_bytes!("../assets/images/stack.png") };
-pub static TEST_IMAGE: GraphicAsset = GraphicAsset::Bytes { file_name: "test.png", data: include_bytes!("../assets/images/test.png") };
 
 // Tiles
 static ASH_TILE_WITH_YIELD: GraphicAsset = GraphicAsset::Bytes { file_name: "AshWithYield.png", data: include_bytes!("../assets/images/tiles/withYield/Ash.png") };
@@ -361,7 +359,7 @@ pub const START_CARBON: f32 = 200.0;
 pub const START_NITROGEN: f32 = 50.0;
 pub const START_PHOSPHORUS: f32 = 50.0;
 pub const START_WATER: f32 = 50.0;
-pub const SYNC_HOLD_TIME: f32 = 1.0;
+pub const SYNC_HOLD_TIME: f32 = 10.0;
 pub const DRAIN_TIME: f32 = 1.0;
 
 pub const BASE_INCOME: Resources = Resources {

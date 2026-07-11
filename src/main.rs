@@ -32,7 +32,6 @@ async fn main() {
   static DEFAULT_FONT: FontAsset = FontAsset::Bytes { file_name: "lexend.ttf", data: include_bytes!("../assets/fonts/lexend.ttf") };
   
   let mut ply = Ply::<()>::new(&DEFAULT_FONT).await;
-  ply.set_debug_mode(true);
 
   let next_sound = load_sound_from_bytes(include_bytes!("../assets/sounds/next.wav")).await.unwrap();
   let pause_sound = load_sound_from_bytes(include_bytes!("../assets/sounds/pause.wav")).await.unwrap();
@@ -55,7 +54,6 @@ async fn main() {
     render_ui(&mut ui, &mut mode);
     ui.show(|_| {}).await;
 
-    draw_fps();
     next_frame().await;
   }
 }

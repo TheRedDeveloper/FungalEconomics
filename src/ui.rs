@@ -16,7 +16,7 @@ pub fn render_ui(ui: &mut Ui, mode: &mut GameMode) {
     .children(|ui| {
       match mode {
         GameMode::StartSync { hold_accumulation } => {
-          render_sync_screen(ui, "ZUM SYNCHRONISIEREN HALTEN", *hold_accumulation, scaling_factor);
+          render_sync_screen(ui, "SYNCHRONISIEREN", *hold_accumulation, scaling_factor);
         }
         GameMode::Playing { state } => {
           render_dashboard(ui, state, scaling_factor);
@@ -25,7 +25,7 @@ pub fn render_ui(ui: &mut Ui, mode: &mut GameMode) {
           }
         }
         GameMode::TransitionSync { state, hold_accumulator } => {
-          render_sync_screen(ui, &format!("PHASE {}: ZUM SYNCHRONISIEREN HALTEN", state.current_phase), *hold_accumulator, scaling_factor);
+          render_sync_screen(ui, &format!("PHASE {}", state.current_phase + 1), *hold_accumulator, scaling_factor);
         }
         GameMode::GameOver { state } => {
           render_game_over(ui, state, scaling_factor);
@@ -192,7 +192,7 @@ fn render_tile_button(ui: &mut Ui, state: &mut GameState, base: BaseTileType, bu
       };
       ui.element().contain(13.0/15.0)
         .image(graphic)
-        .background_color(if stacking_but_not_featured { 0x555555 } else { 0xFFFFFF })
+        .background_color(if stacking_but_not_featured { 0xCCCCCC } else { 0xFFFFFF })
         .id(id)
         .children(|ui| {
           ui.element().width(fixed!(75.0 * scaling_factor)).height(fixed!(16.0 * scaling_factor))
@@ -242,7 +242,7 @@ fn render_bottom_bar(ui: &mut Ui, state: &mut GameState, scaling_factor: f32) {
         .corner_radius(4.0 * scaling_factor)
         .layout(|l| l.align(CenterX, CenterY))
         .children(|ui| {
-          ui.text("ÜBERSTAPELN", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
+          ui.text("ÜBERSTAPELT", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
         });
       if ui.is_just_pressed(out_id) {
         state.overstacked_menu = Some(None);
@@ -322,7 +322,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
         .corner_radius(12.0 * scaling_factor)
         .layout(|l| l.direction(TopToBottom).gap((16.0 * scaling_factor) as u16).padding((18.0 * scaling_factor) as u16))
         .children(|ui| {
-          ui.text("FELD ZUM ÜBERNEHMEN AUSWÄHLEN", |t| t.font_size((22.0 * scaling_factor) as u16).color(0xFFFFFF));
+          ui.text("ÜBERNOMMENES FELD AUSWÄHLEN", |t| t.font_size((22.0 * scaling_factor) as u16).color(0xFFFFFF));
 
           ui.element().width(grow!()).height(grow!())
             .layout(|l| l.direction(TopToBottom).gap((15.0 * scaling_factor) as u16).align(CenterX, CenterY))
@@ -347,7 +347,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
                         }
                       }
 
-                      let bg = if is_availiable { 0xFFFFFF } else { 0x555555 }; 
+                      let bg = if is_availiable { 0xFFFFFF } else { 0xCCCCCC }; 
 
                       ui.element().contain(13.0/15.0)
                         .id(id.clone())
@@ -384,7 +384,7 @@ fn render_outstack_overlay(ui: &mut Ui, state: &mut GameState, scaling_factor: f
                 .corner_radius(6.0 * scaling_factor)
                 .layout(|l| l.align(CenterX, CenterY))
                 .children(|ui| {
-                  ui.text("ÜBERNEHMEN", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
+                  ui.text("ÜBERNOMMEN", |t| t.color(0xFFFFFF).font_size((16.0 * scaling_factor) as u16));
                 });
 
               if is_selected && ui.is_just_pressed(remove_id) {
